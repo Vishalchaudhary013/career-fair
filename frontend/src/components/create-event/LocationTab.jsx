@@ -1,0 +1,233 @@
+import { useState, useEffect } from "react";
+import { MapPin, RotateCcw } from "lucide-react";
+
+const LocationTab = ({
+  venueOption,
+  setVenueOption,
+  venueName,
+  setVenueName,
+  street1,
+  setStreet1,
+  street2, setStreet2,
+  city, setCity,
+  pinCode, setPinCode,
+  nearestBusStop, setNearestBusStop,
+  nearestAirport,
+  setNearestAirport,
+  nearestTrainStation,
+  setNearestTrainStation,
+  locationLink,
+  setLocationLink,
+  resetLocation,
+}) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [venueSuggestions, setVenueSuggestions] = useState([]);
+  const [showVenueSuggestions, setShowVenueSuggestions] = useState(false);
+  const [mapCenter, setMapCenter] = useState({ lat: 12.9716, lon: 77.5946 }); // Default to Bangalore
+
+  useEffect(() => {
+    if (city.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    if (!showSuggestions) return;
+
+    const delay = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=5`)
+        .then(res => res.json())
+        .then(data => {
+          setSuggestions(data);
+        })
+        .catch(err => console.error("Error fetching cities:", err));
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [city, showSuggestions]);
+
+  useEffect(() => {
+    if (venueName.length < 3) {
+      setVenueSuggestions([]);
+      return;
+    }
+    if (!showVenueSuggestions) return;
+
+    const delay = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(venueName)}&format=json&addressdetails=1&limit=5`)
+        .then(res => res.json())
+        .then(data => {
+          setVenueSuggestions(data);
+        })
+        .catch(err => console.error("Error fetching venues:", err));
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [venueName, showVenueSuggestions]);
+
+  const handleCitySelect = (s) => {
+    const cityName = s.name || s.display_name.split(',')[0];
+    setCity(cityName);
+    setMapCenter({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
+    setShowSuggestions(false);
+  };
+
+  const handleVenueSelect = (s) => {
+    const vName = s.name || s.display_name.split(',')[0];
+    setVenueName(vName);
+    
+    const address = s.address || {};
+    const extractedCity = address.city || address.town || address.village || address.county || address.state_district || "";
+    if (extractedCity) {
+      setCity(extractedCity);
+    }
+    
+    setMapCenter({ lat: parseFloat(s.lat), lon: parseFloat(s.lon) });
+    setShowVenueSuggestions(false);
+  };
+
+  const handleCityChange = (e) => {
+    setCity(e.target.value);
+    setShowSuggestions(true);
+  };
+
+  const lat = mapCenter.lat;
+  const lon = mapCenter.lon;
+  const bbox = `${lon - 0.05},${lat - 0.05},${lon + 0.05},${lat + 0.05}`;
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+
+  return (
+  <div className="w-full space-y-7 animate-in fade-in duration-200">
+    <div>
+      <h3 className="text-sm font-semibold text-primary mb-3">Venue Details</h3>
+      <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="venueOption" value="address" checked={venueOption === "address"} onChange={() => setVenueOption("address")} className="w-4 h-4 accent-primary cursor-pointer" />
+          <span className="text-sm font-medium text-gray-700">Add Venue Address</span>
+        </label>
+        {/* <label className="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="venueOption" value="online" checked={venueOption === "online"} onChange={() => { setVenueOption("online"); setCity("Online"); }} className="w-4 h-4 accent-primary cursor-pointer" />
+          <span className="text-sm font-medium text-gray-700">Online / Virtual Event</span>
+        </label> */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="venueOption" value="not-decided" checked={venueOption === "not-decided"} onChange={() => setVenueOption("not-decided")} className="w-4 h-4 accent-primary cursor-pointer" />
+          <span className="text-sm font-medium text-gray-700">Venue not decided</span>
+        </label>
+      </div>
+    </div>
+
+    {venueOption === "address" && (
+      <>
+        <div>
+          <h3 className="text-sm font-semibold text-primary mb-3">Fair Venue</h3>
+          <div className="space-y-3 w-full">
+            <div className="relative">
+              <input type="text" placeholder="Name of Venue (Search to locate)" value={venueName} onChange={(e) => { setVenueName(e.target.value); setShowVenueSuggestions(true); }} onFocus={() => setShowVenueSuggestions(true)} onBlur={() => setTimeout(() => setShowVenueSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              {showVenueSuggestions && venueSuggestions.length > 0 && (
+                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {venueSuggestions.map((s) => (
+                    <div key={s.place_id} onClick={() => handleVenueSelect(s)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                      {s.display_name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <input type="text" placeholder="Street Line 1" value={street1} onChange={(e) => setStreet1(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            <input type="text" placeholder="Street Line 2" value={street2} onChange={(e) => setStreet2(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="relative">
+                <input type="text" placeholder="City" value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {suggestions.map((s) => (
+                      <div key={s.place_id} onClick={() => handleCitySelect(s)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                        {s.display_name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input type="text" placeholder="Pin Code / Zip Code" value={pinCode || ""} onChange={(e) => setPinCode(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <input type="text" placeholder="Nearest Bus Stop" value={nearestBusStop || ""} onChange={(e) => setNearestBusStop(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              <input type="text" placeholder="Nearest Airport" value={nearestAirport || ""} onChange={(e) => setNearestAirport(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              <input type="text" placeholder="Nearest Train Station" value={nearestTrainStation || ""} onChange={(e) => setNearestTrainStation(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            </div>
+            <div className="w-full">
+              <input type="text" placeholder="Location Link (e.g., Google Maps URL)" value={locationLink || ""} onChange={(e) => setLocationLink(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            </div>
+          </div>
+        </div>
+        <button onClick={resetLocation} className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer">
+          <RotateCcw size={13} /> Reset Location
+        </button>
+        <div>
+          <h3 className="text-sm font-semibold text-primary mb-3">Location Map</h3>
+          <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-100 w-full h-[280px]">
+            {(!city || city.trim() === "") && (
+              <div className="absolute inset-0 z-10 bg-black/40 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
+                <MapPin size={52} className="text-secondary mb-3 drop-shadow-lg" fill="currentColor" />
+                <span className="text-2xl font-black text-secondary drop-shadow-md tracking-wider uppercase">Location Not Selected</span>
+                <span className="text-sm font-medium mt-2 opacity-90">Please enter a City or Venue above</span>
+              </div>
+            )}
+            <iframe title="location-map" src={mapSrc} width="100%" height="100%" style={{ border: 0, display: "block" }} loading="lazy" />
+          </div>
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-primary">
+            <MapPin size={13} /> Drag and drop marker to adjust location
+          </p>
+        </div>
+      </>
+    )}
+
+    {venueOption === "online" && (
+      <div className="w-full space-y-5 animate-in fade-in duration-200">
+        <div>
+          <label className="block text-sm font-semibold text-gray-800 mb-2">Meeting/Streaming Platform (Optional)</label>
+          <input 
+            type="text" 
+            placeholder="e.g. Zoom, Microsoft Teams, YouTube Live, etc." 
+            value={venueName} 
+            onChange={(e) => setVenueName(e.target.value)} 
+            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" 
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-800 mb-2">Virtual fair Location / Region (For local targeting)</label>
+          <input 
+            type="text" 
+            placeholder="e.g. Online, India, Bengaluru" 
+            value={city} 
+            onChange={(e) => setCity(e.target.value)} 
+            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" 
+          />
+        </div>
+        <p className="text-xs text-gray-500 font-medium">
+          Note: This is an online fair. The streaming details can be updated anytime before the fair starts.
+        </p>
+      </div>
+    )}
+
+    {venueOption === "not-decided" && (
+      <div className="w-full">
+        <label className="block text-sm font-semibold text-gray-800 mb-2">City</label>
+        <div className="relative">
+          <input type="text" placeholder="Enter City" value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {suggestions.map((s) => (
+                <div key={s.place_id} onClick={() => handleCitySelect(s)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                  {s.display_name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+  );
+};
+
+export default LocationTab;
