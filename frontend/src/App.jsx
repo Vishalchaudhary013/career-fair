@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css'; // Style component
 import AppRoutes from "./routes/AppRoutes";
 
+
 export { SERVER_URL } from "./config";
 
 function App() {
@@ -10,6 +11,8 @@ function App() {
      <Router>
        <AppRoutes />
      </Router>
+
+   
   );
 }
 

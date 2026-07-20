@@ -125,7 +125,7 @@ const SuperAdminDashboard = () => {
       if (activeSection === "Overview") {
         const data = await getDashboardStats();
         setStats(data);
-      } else if (activeSection === "Users") {
+      } else if (["Users", "Admins", "Employers"].includes(activeSection)) {
         const data = await getAllUsers();
         setUsers(data);
       } else if (activeSection === "AllEvents") {
@@ -359,11 +359,321 @@ const SuperAdminDashboard = () => {
 
   const menuItems = [
     { key: "Overview", label: "Overview", icon: <PieChart size={16} /> },
+    { key: "Admins", label: "Admins", icon: <Users size={16} /> },
+    { key: "Employers", label: "Employers", icon: <Users size={16} /> },
     { key: "Users", label: "Users", icon: <Users size={16} /> },
     { key: "MyEvents", label: "Events", icon: <LayoutGrid size={16} /> },
     { key: "AllEvents", label: "All Events", icon: <CalendarDays size={16} /> },
     { key: "Profile", label: "Manage Profile", icon: <Settings size={16} /> }
   ];
+
+  const renderUserTableSection = (title, userList) => (
+    <div className="bg-white border border-[#E2EAFC] overflow-hidden shadow-sm">
+      <div className="p-4 border-b border-[#E2EAFC] flex justify-between items-center bg-slate-50/50">
+        <div className="flex items-center gap-3">
+          <h2 className="font-semibold text-primary">{title}</h2>
+          <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full">{userList.length}</span>
+        </div>
+        {selectedUsers.length > 0 && (
+          <button 
+            onClick={handleDeleteBulkUsers}
+            disabled={busy}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-colors text-xs shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Trash2 size={14} /> Delete Selected ({selectedUsers.length})
+          </button>
+        )}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-50 border-b border-[#E2EAFC] text-slate-500">
+            <tr>
+              <th className="px-4 py-3 w-[40px]">
+                <input 
+                  type="checkbox" 
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  checked={userList.length > 0 && userList.every(u => selectedUsers.includes(u._id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const ids = userList.map(u => u._id);
+                      setSelectedUsers([...new Set([...selectedUsers, ...ids])]);
+                    } else {
+                      const ids = userList.map(u => u._id);
+                      setSelectedUsers(selectedUsers.filter(id => !ids.includes(id)));
+                    }
+                  }}
+                />
+              </th>
+              <th className="px-4 py-3 font-semibold">Name</th>
+              <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold">Organization</th>
+              <th className="px-4 py-3 font-semibold">Password</th>
+              <th className="px-4 py-3 font-semibold">Verified</th>
+              <th className="px-4 py-3 text-right font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E2EAFC]">
+            {userList.map(u => (
+              <React.Fragment key={u._id}>
+                <tr className={`hover:bg-slate-50 transition-colors ${selectedUsers.includes(u._id) ? 'bg-primary/5' : ''}`}>
+                  <td className="px-4 py-3">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      checked={selectedUsers.includes(u._id)}
+                      onChange={() => handleSelectOneUser(u._id)}
+                    />
+                  </td>
+                  <td className="px-4 py-3 font-medium text-slate-800">{u.name || u.userName || 'N/A'}</td>
+                  <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                  <td className="px-4 py-3 text-slate-600">{u.organisationName || 'N/A'}</td>
+                  <td className="px-4 py-3 text-slate-600 font-mono flex items-center gap-2">
+                    {u.decryptedPassword ? (
+                      <>
+                        <span>{visiblePasswords.includes(u._id) ? u.decryptedPassword : '••••••••'}</span>
+                        <button 
+                          onClick={() => togglePasswordVisibility(u._id)}
+                          className="text-slate-400 hover:text-slate-600 ml-1"
+                        >
+                          {visiblePasswords.includes(u._id) ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">Reset Required</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {u.isVerified 
+                      ? <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-medium border border-emerald-200">Verified</span> 
+                      : <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-medium border border-amber-200">Pending</span>}
+                    
+                    {(u.role === "ORGANIZER" || u.role === "ADMIN") && !u.isApproved && (
+                      <span className="block mt-1 text-secondary text-[10px] font-bold uppercase tracking-wider">Unapproved</span>
+                    )}
+                    {(u.role === "ORGANIZER" || u.role === "ADMIN") && u.isApproved && (
+                      <span className="block mt-1 text-primary text-[10px] font-bold uppercase tracking-wider">Approved</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right flex justify-end gap-3 items-center">
+                    <button 
+                      disabled={busy}
+                      onClick={() => handleImpersonate(u._id)}
+                      className="text-primary hover:text-primary/80 bg-primary/10 p-1.5 rounded-md disabled:opacity-50 transition"
+                      title="Access Dashboard"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                    <button 
+                      disabled={busy}
+                      onClick={() => {
+                        setPasswordChangeUserId(passwordChangeUserId === u._id ? null : u._id);
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      }}
+                      className="text-amber-500 hover:text-amber-700 bg-amber-50 p-1.5 rounded-md disabled:opacity-50 transition"
+                      title="Change Password"
+                    >
+                      <KeyRound size={16} />
+                    </button>
+                    <button 
+                      disabled={busy}
+                      onClick={() => handleDeleteUser(u._id)}
+                      className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded-md disabled:opacity-50 transition"
+                      title="Delete User"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                     {(u.role === "ORGANIZER" || u.role === "ADMIN") && !u.isApproved && (
+                      <>
+                        <button 
+                          disabled={busy}
+                          onClick={() => handleApproveAdminClick(u._id)}
+                          className="text-emerald-600 hover:text-emerald-800 bg-emerald-50 p-1.5 rounded-md disabled:opacity-50 transition border border-emerald-200"
+                          title="Approve Organizer/Admin"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          disabled={busy}
+                          onClick={() => handleRejectAdminClick(u._id)}
+                          className="text-rose-600 hover:text-rose-800 bg-rose-50 p-1.5 rounded-md disabled:opacity-50 transition border border-rose-200"
+                          title="Reject Organizer/Admin"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+
+                  </td>
+                </tr>
+                {passwordChangeUserId === u._id && (
+                  <tr className="bg-[#F8FAFC]">
+                    <td colSpan="7" className="px-4 py-4">
+                      <div className="bg-white border border-[#E2EAFC] rounded-lg p-4 max-w-2xl shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                          <div className="relative">
+                            <input 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="New password" 
+                              className="w-full pl-3 pr-10 py-2 border border-[#E2EAFC] rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                            />
+                            <button 
+                              type="button" 
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                          <div className="relative">
+                            <input 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="Confirm password" 
+                              className="w-full pl-3 pr-10 py-2 border border-[#E2EAFC] rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                            <button 
+                              type="button" 
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-4">
+                          Password must be at least 8 characters and include letters, numbers, and special characters.
+                        </p>
+                        <div className="flex items-center gap-2 mb-4">
+                          <input 
+                            type="checkbox" 
+                            id="notify-admin" 
+                            checked={notifyAdmin}
+                            onChange={(e) => setNotifyAdmin(e.target.checked)}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label htmlFor="notify-admin" className="text-sm text-slate-700 cursor-pointer">
+                            Notify admin by email about password change
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            disabled={busy}
+                            onClick={() => handlePasswordChange(u._id)}
+                            className="bg-[#0A1629] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#152745] transition disabled:opacity-50"
+                          >
+                            Save Password
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setPasswordChangeUserId(null);
+                              setNewPassword("");
+                              setConfirmPassword("");
+                            }}
+                            className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            {userList.length === 0 && (
+              <tr><td colSpan="7" className="text-center py-8 text-slate-500">No records found</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderSimpleUserTableSection = (title, userList) => (
+    <div className="bg-white border border-[#E2EAFC] overflow-hidden shadow-sm">
+      <div className="p-4 border-b border-[#E2EAFC] flex justify-between items-center bg-slate-50/50">
+        <div className="flex items-center gap-3">
+          <h2 className="font-semibold text-primary">{title}</h2>
+          <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full">{userList.length}</span>
+        </div>
+        {selectedUsers.length > 0 && (
+          <button 
+            onClick={handleDeleteBulkUsers}
+            disabled={busy}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-colors text-xs shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Trash2 size={14} /> Delete Selected ({selectedUsers.length})
+          </button>
+        )}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-50 border-b border-[#E2EAFC] text-slate-500">
+            <tr>
+              <th className="px-4 py-3 w-[40px]">
+                <input 
+                  type="checkbox" 
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  checked={userList.length > 0 && userList.every(u => selectedUsers.includes(u._id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const ids = userList.map(u => u._id);
+                      setSelectedUsers([...new Set([...selectedUsers, ...ids])]);
+                    } else {
+                      const ids = userList.map(u => u._id);
+                      setSelectedUsers(selectedUsers.filter(id => !ids.includes(id)));
+                    }
+                  }}
+                />
+              </th>
+              <th className="px-4 py-3 font-semibold">Name</th>
+              <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold">Verified</th>
+              <th className="px-4 py-3 text-right font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E2EAFC]">
+            {userList.map(u => (
+              <tr key={u._id} className={`hover:bg-slate-50 transition-colors ${selectedUsers.includes(u._id) ? 'bg-primary/5' : ''}`}>
+                <td className="px-4 py-3">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    checked={selectedUsers.includes(u._id)}
+                    onChange={() => handleSelectOneUser(u._id)}
+                  />
+                </td>
+                <td className="px-4 py-3 font-medium text-slate-800">{u.name || (u.email ? u.email.split('@')[0] : 'N/A')}</td>
+                <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                <td className="px-4 py-3">
+                  {u.isVerified 
+                    ? <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-medium border border-emerald-200">Verified</span> 
+                    : <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-medium border border-amber-200">Pending</span>}
+                </td>
+                <td className="px-4 py-3 text-right flex justify-end gap-3 items-center">
+                  <button 
+                    disabled={busy}
+                    onClick={() => handleDeleteUser(u._id)}
+                    className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded-md disabled:opacity-50 transition"
+                    title="Delete User"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {userList.length === 0 && (
+              <tr><td colSpan="5" className="text-center py-8 text-slate-500">No records found</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   if (!user || user.role !== "SUPER_ADMIN") return null;
 
@@ -463,225 +773,9 @@ const SuperAdminDashboard = () => {
                   </div>
                 )}
 
-                {activeSection === "Users" && (
-                  <div className="bg-white border border-[#E2EAFC] overflow-hidden shadow-sm">
-                    <div className="p-4 border-b border-[#E2EAFC] flex justify-between items-center bg-slate-50/50">
-                      <div className="flex items-center gap-3">
-                        <h2 className="font-semibold text-primary">All Registered Users</h2>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full">{users.length}</span>
-                      </div>
-                      {selectedUsers.length > 0 && (
-                        <button 
-                          onClick={handleDeleteBulkUsers}
-                          disabled={busy}
-                          className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg transition-colors text-xs shadow-sm flex items-center gap-1.5 disabled:opacity-50"
-                        >
-                          <Trash2 size={14} /> Delete Selected ({selectedUsers.length})
-                        </button>
-                      )}
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 border-b border-[#E2EAFC] text-slate-500">
-                          <tr>
-                            <th className="px-4 py-3 w-[40px]">
-                              <input 
-                                type="checkbox" 
-                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                checked={users.length > 0 && selectedUsers.length === users.length}
-                                onChange={handleSelectAllUsers}
-                              />
-                            </th>
-                            <th className="px-4 py-3 font-semibold">Name</th>
-                            <th className="px-4 py-3 font-semibold">Email</th>
-                            <th className="px-4 py-3 font-semibold">Organization</th>
-                            <th className="px-4 py-3 font-semibold">Password</th>
-                            <th className="px-4 py-3 font-semibold">Verified</th>
-                            <th className="px-4 py-3 text-right font-semibold">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E2EAFC]">
-                          {users.map(u => (
-                            <React.Fragment key={u._id}>
-                              <tr key={u._id} className={`hover:bg-slate-50 transition-colors ${selectedUsers.includes(u._id) ? 'bg-primary/5' : ''}`}>
-                                <td className="px-4 py-3">
-                                  <input 
-                                    type="checkbox" 
-                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                    checked={selectedUsers.includes(u._id)}
-                                    onChange={() => handleSelectOneUser(u._id)}
-                                  />
-                                </td>
-                                <td className="px-4 py-3 font-medium text-slate-800">{u.name || u.userName || 'N/A'}</td>
-                                <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                                <td className="px-4 py-3 text-slate-600">{u.organisationName || 'N/A'}</td>
-                                <td className="px-4 py-3 text-slate-600 font-mono flex items-center gap-2">
-                                  {u.decryptedPassword ? (
-                                    <>
-                                      <span>{visiblePasswords.includes(u._id) ? u.decryptedPassword : '••••••••'}</span>
-                                      <button 
-                                        onClick={() => togglePasswordVisibility(u._id)}
-                                        className="text-slate-400 hover:text-slate-600 ml-1"
-                                      >
-                                        {visiblePasswords.includes(u._id) ? <EyeOff size={14} /> : <Eye size={14} />}
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <span className="text-xs text-slate-400 italic">Reset Required</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-3">
-                                  {u.isVerified 
-                                    ? <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-medium border border-emerald-200">Verified</span> 
-                                    : <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-medium border border-amber-200">Pending</span>}
-                                  
-                                  {/* {u.role === "ORGANIZER" && !u.isApproved && (
-                                    <span className="block mt-1 text-secondary text-[10px] font-bold uppercase tracking-wider">Unapproved</span>
-                                  )}
-                                  {u.role === "ORGANIZER" && u.isApproved && (
-                                    <span className="block mt-1 text-primary text-[10px] font-bold uppercase tracking-wider">Approved</span>
-                                  )} */}
-                                </td>
-                                <td className="px-4 py-3 text-right flex justify-end gap-3 items-center">
-                                  
-                                 
-                                  <button 
-                                    disabled={busy}
-                                    onClick={() => handleImpersonate(u._id)}
-                                    className="text-primary hover:text-primary/80 bg-primary/10 p-1.5 rounded-md disabled:opacity-50 transition"
-                                    title="Access Dashboard"
-                                  >
-                                    <ExternalLink size={16} />
-                                  </button>
-                                  <button 
-                                    disabled={busy}
-                                    onClick={() => {
-                                      setPasswordChangeUserId(passwordChangeUserId === u._id ? null : u._id);
-                                      setNewPassword("");
-                                      setConfirmPassword("");
-                                    }}
-                                    className="text-amber-500 hover:text-amber-700 bg-amber-50 p-1.5 rounded-md disabled:opacity-50 transition"
-                                    title="Change Password"
-                                  >
-                                    <KeyRound size={16} />
-                                  </button>
-                                  <button 
-                                    disabled={busy}
-                                    onClick={() => handleDeleteUser(u._id)}
-                                    className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded-md disabled:opacity-50 transition"
-                                    title="Delete User"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                   {u.role === "ORGANIZER" && !u.isApproved && (
-                                    <>
-                                      <button 
-                                        disabled={busy}
-                                        onClick={() => handleApproveAdminClick(u._id)}
-                                        className="text-emerald-600 hover:text-emerald-800 bg-emerald-50 p-1.5 rounded-md disabled:opacity-50 transition border border-emerald-200"
-                                        title="Approve Organizer"
-                                      >
-                                        Approve
-                                      </button>
-                                      <button 
-                                        disabled={busy}
-                                        onClick={() => handleRejectAdminClick(u._id)}
-                                        className="text-rose-600 hover:text-rose-800 bg-rose-50 p-1.5 rounded-md disabled:opacity-50 transition border border-rose-200"
-                                        title="Reject Organizer"
-                                      >
-                                        Reject
-                                      </button>
-                                    </>
-                                  )}
-
-                                </td>
-                              </tr>
-                              {passwordChangeUserId === u._id && (
-                                <tr className="bg-[#F8FAFC]">
-                                  <td colSpan="6" className="px-4 py-4">
-                                    <div className="bg-white border border-[#E2EAFC] rounded-lg p-4 max-w-2xl shadow-sm">
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                                        <div className="relative">
-                                          <input 
-                                            type={showPassword ? "text" : "password"} 
-                                            placeholder="New password" 
-                                            className="w-full pl-3 pr-10 py-2 border border-[#E2EAFC] rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                          />
-                                          <button 
-                                            type="button" 
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                          >
-                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                          </button>
-                                        </div>
-                                        <div className="relative">
-                                          <input 
-                                            type={showPassword ? "text" : "password"} 
-                                            placeholder="Confirm password" 
-                                            className="w-full pl-3 pr-10 py-2 border border-[#E2EAFC] rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                          />
-                                          <button 
-                                            type="button" 
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                          >
-                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                          </button>
-                                        </div>
-                                      </div>
-                                      <p className="text-[11px] text-slate-500 mb-4">
-                                        Password must be at least 8 characters and include letters, numbers, and special characters.
-                                      </p>
-                                      <div className="flex items-center gap-2 mb-4">
-                                        <input 
-                                          type="checkbox" 
-                                          id="notify-admin" 
-                                          checked={notifyAdmin}
-                                          onChange={(e) => setNotifyAdmin(e.target.checked)}
-                                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <label htmlFor="notify-admin" className="text-sm text-slate-700 cursor-pointer">
-                                          Notify admin by email about password change
-                                        </label>
-                                      </div>
-                                      <div className="flex items-center gap-3">
-                                        <button 
-                                          disabled={busy}
-                                          onClick={() => handlePasswordChange(u._id)}
-                                          className="bg-[#0A1629] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#152745] transition disabled:opacity-50"
-                                        >
-                                          Save Password
-                                        </button>
-                                        <button 
-                                          onClick={() => {
-                                            setPasswordChangeUserId(null);
-                                            setNewPassword("");
-                                            setConfirmPassword("");
-                                          }}
-                                          className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition"
-                                        >
-                                          Cancel
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                            </React.Fragment>
-                          ))}
-                          {users.length === 0 && (
-                            <tr><td colSpan="7" className="text-center py-8 text-slate-500">No users found</td></tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                {activeSection === "Admins" && renderUserTableSection("Admins List", users.filter(u => u.role === "ADMIN" || u.role === "ORGANIZER"))}
+                {activeSection === "Employers" && renderSimpleUserTableSection("Employers List", users.filter(u => u.role === "EMPLOYER"))}
+                {activeSection === "Users" && renderSimpleUserTableSection("Users List", users.filter(u => u.role === "USER" || (!u.role || (u.role !== "ADMIN" && u.role !== "SUPER_ADMIN" && u.role !== "ORGANIZER" && u.role !== "EMPLOYER"))))}
 
                 {activeSection === "MyEvents" && (
                   <EventsSection 

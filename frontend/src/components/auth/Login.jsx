@@ -58,8 +58,10 @@ const { login, loading } = useAuth();
       console.log(data)
       if (data.user.role === "SUPER_ADMIN") {
         navigate('/super-admin-dashboard');
+      } else if (data.user.role === "ADMIN" || data.user.role === "ORGANIZER") {
+        navigate(`/admin-dashboard/${data.user.id || ""}`);
       } else {
-        navigate(`/admin-dashboard/${data.user.id}`);
+        navigate('/events');
       }
     } catch (error) {
       setErrorMsg(error.response?.data?.message || "Login failed. Please check your credentials.");

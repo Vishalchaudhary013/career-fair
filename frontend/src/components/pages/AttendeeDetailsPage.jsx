@@ -42,11 +42,6 @@ const AttendeeDetailsPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!state) {
-      navigate(`/event/${id}/book`, { replace: true });
-      return;
-    }
-
     const fetchEvent = async () => {
       try {
         const data = await getEvent(id);
@@ -58,9 +53,8 @@ const AttendeeDetailsPage = () => {
       }
     };
     fetchEvent();
-  }, [id, state, navigate]);
+  }, [id]);
 
-  if (!state) return null;
   if (loading) return <div className="flex justify-center mt-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7e3af2]"></div></div>;
   if (error || !dbEvent) return <div className="text-center mt-32 text-red-500">{error || "Event not found"}</div>;
 
@@ -69,7 +63,7 @@ const AttendeeDetailsPage = () => {
   const startTime = formatTime(getEventTime(dbEvent));
   const venue = getEventVenue(dbEvent);
 
-  const { totalPrice, totalItems, quantities, tickets } = state;
+  const { totalPrice = 0, totalItems = 1, quantities = {}, tickets = [] } = state || {};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -331,7 +325,7 @@ const AttendeeDetailsPage = () => {
       
       
 
-      <div className="max-w-6xl mx-auto w-full px-6 py-8">
+      <div className="max-w-5xl mx-auto w-full px-6 py-8">
         
         <div className="mb-8">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-semibold mb-1">
@@ -348,62 +342,46 @@ const AttendeeDetailsPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          <div className="lg:col-span-8">
-            <div className="bg-gray-50 rounded-t-lg px-6 py-3 border border-gray-200 border-b-0">
-              <h2 className="font-semibold text-gray-700 flex items-center gap-2">
-                <Users size={16} /> Attendee Details
-              </h2>
-            </div>
-            <form onSubmit={handleSubmit} className="bg-white border border-gray-200 p-8 shadow-sm">
-              <div className="space-y-6">
-                {dbEvent.questions?.length > 0 ? (
-                  dbEvent.questions.map((q) => (
-                    <div key={q.id || q._id}>
+        <div className="w-full">
+          <div className="bg-gray-50 rounded-t-lg px-6 py-3 border border-gray-200 border-b-0">
+            <h2 className="font-semibold text-gray-700 flex items-center gap-2">
+              <Users size={16} /> Attendee Details
+            </h2>
+          </div>
+          <form onSubmit={handleSubmit} className="bg-white border border-gray-200 p-8 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {dbEvent.questions?.length > 0 ? (
+                dbEvent.questions.map((q) => {
+                  const isResume = q.title?.toLowerCase().includes("resume") || 
+                                   q.title?.toLowerCase().includes("cv") || 
+                                   (q.type || "").toLowerCase().includes("file");
+                  return (
+                    <div key={q.id || q._id} className={isResume ? "md:col-span-2" : "col-span-1"}>
                       <label className="block text-[14.5px] font-semibold text-gray-600 mb-2">
                         {q.title} {q.status === "Mandatory" && <span className="text-red-500">*</span>}
                       </label>
                       {renderInputForQuestion(q)}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No additional details required for this event.</p>
-                )}
+                  );
+                })
+              ) : (
+                <p className="text-gray-500 md:col-span-2">No additional details required for this event.</p>
+              )}
 
-                
-                <div className="flex items-start gap-3 mt-8">
-                  <input type="checkbox" required className="mt-1 w-4 h-4 text-primary rounded focus:ring-primary" />
-                  <span className="text-sm text-gray-600">
-                    By clicking here, I state that I have read and understood the <a href="#" className="text-blue-600 hover:underline">terms and conditions</a> and <a href="#" className="text-blue-600 hover:underline">privacy policy</a>.
-                  </span>
-                </div>
-
-                <div className="flex justify-end pt-4">
-                  <button disabled={submitting} type="submit" className="bg-gradient-to-r from-primary to-[#2a108a] hover:opacity-95 text-white px-10 py-2.5 rounded font-semibold transition-colors shadow-md disabled:opacity-70">
-                    {submitting ? "PROCESSING..." : "REGISTER"}
-                  </button>
-                </div>
+              <div className="md:col-span-2 flex items-start gap-3 mt-4">
+                <input type="checkbox" required className="mt-1 w-4 h-4 text-primary rounded focus:ring-primary" />
+                <span className="text-sm text-gray-600">
+                  By clicking here, I state that I have read and understood the <a href="#" className="text-blue-600 hover:underline">terms and conditions</a> and <a href="#" className="text-blue-600 hover:underline">privacy policy</a>.
+                </span>
               </div>
-            </form>
-          </div>
 
-          
-          <div className="lg:col-span-4">
-            <div className="border border-gray-200 bg-white shadow-sm p-6">
-              <h3 className="text-xs font-bold text-gray-500 mb-6 tracking-widest uppercase">Summary</h3>
-              
-              <div className="flex justify-between items-center mb-6 text-sm">
-                <span className="text-gray-500">Price ({totalItems} item{totalItems > 1 ? 's' : ''})</span>
-                <span className="text-gray-600 font-semibold">{totalPrice > 0 ? `₹${totalPrice}` : "FREE"}</span>
-              </div>
-              
-              <div className="flex justify-between items-center font-bold text-primary">
-                <span>Total Amount</span>
-                <span>{totalPrice > 0 ? `₹${totalPrice}` : "FREE"}</span>
+              <div className="md:col-span-2 flex justify-end pt-4">
+                <button disabled={submitting} type="submit" className="bg-gradient-to-r from-primary to-[#2a108a] hover:opacity-95 text-white px-10 py-2.5 rounded font-semibold transition-colors shadow-md disabled:opacity-70">
+                  {submitting ? "PROCESSING..." : "REGISTER"}
+                </button>
               </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

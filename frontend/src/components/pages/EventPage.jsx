@@ -231,7 +231,7 @@ const EventPage = () => {
           href={`https://wa.me/${getWhatsAppNumber(dbEvent)}?text=${encodeURIComponent("Hi, I am interested in this event.")}`}
           target="_blank"
           rel="noreferrer"
-          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-[#25D366] text-white px-5 py-3 rounded-full shadow-[0_4px_14px_rgba(37,211,102,0.4)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.6)] hover:-translate-y-1 transition-all duration-300 z-50 flex items-center justify-center cursor-pointer"
+          className="fixed bottom-20 right-6 md:bottom-20 md:right-8 bg-[#25D366] text-white px-5 py-3 rounded-full shadow-[0_4px_14px_rgba(37,211,102,0.4)] hover:shadow-[0_6px_20px_rgba(37,211,102,0.6)] hover:-translate-y-1 transition-all duration-300 z-50 flex items-center justify-center cursor-pointer"
           title="Chat with Organizer"
         >
           <IoLogoWhatsapp size={32} className="shrink-0" />

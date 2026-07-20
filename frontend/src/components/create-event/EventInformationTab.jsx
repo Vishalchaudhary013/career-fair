@@ -305,6 +305,27 @@ const EventInformationTab = ({
           ].map(({ title, cmd, label }) => (
             <button key={cmd} title={title} onMouseDown={e => { e.preventDefault(); document.execCommand(cmd, false); }} className="w-7 h-7 rounded flex items-center justify-center hover:bg-gray-200 text-gray-700 cursor-pointer transition">{label}</button>
           ))}
+          
+          {/* Text Color Picker */}
+          <div className="relative flex items-center justify-center w-7 h-7 rounded hover:bg-gray-200 cursor-pointer transition" title="Text Color">
+            <div className="flex flex-col items-center justify-center">
+              <span className="font-bold text-xs text-gray-800 leading-none">A</span>
+              <span className="w-3.5 h-1 bg-red-500 rounded-full mt-0.5" id="color-indicator"></span>
+            </div>
+            <input 
+              type="color" 
+              defaultValue="#ff0000"
+              onChange={e => {
+                document.execCommand("foreColor", false, e.target.value);
+                const ind = document.getElementById("color-indicator");
+                if (ind) ind.style.backgroundColor = e.target.value;
+              }}
+              onMouseDown={e => e.stopPropagation()}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              title="Pick Text Color"
+            />
+          </div>
+
           <div className="w-px h-5 bg-gray-300 mx-1.5" />
           <select defaultValue="14" onMouseDown={e => e.stopPropagation()} onChange={e => { document.execCommand("fontSize", false, "7"); const els = document.querySelectorAll("[size='7']"); els.forEach(el => { el.removeAttribute("size"); el.style.fontSize = e.target.value + "px"; }); }} className="text-xs border border-gray-200 rounded px-1 py-0.5 bg-white outline-none cursor-pointer h-6">
             {["10","12","14","16","18","20","24","28","32","Normal"].map(s => <option key={s} value={s}>{s}</option>)}

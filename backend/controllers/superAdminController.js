@@ -223,7 +223,7 @@ export const updateSuperAdminProfile = async (req, res) => {
 
 export const getPendingAdmins = async (req, res) => {
   try {
-    const pendingAdmins = await User.find({ role: "ORGANIZER", isApproved: false }).select("-password").sort({ createdAt: -1 });
+    const pendingAdmins = await User.find({ role: { $in: ["ADMIN", "ORGANIZER"] }, isApproved: false }).select("-password").sort({ createdAt: -1 });
     res.json(pendingAdmins);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -250,14 +250,14 @@ export const approveAdmin = async (req, res) => {
     try {
       await sendEmail({
         email: admin.email,
-        subject: "Your Organizer Account is Approved!",
-        message: `Hello ${admin.name},\n\nYour account has been approved by the Super Admin.\nYou can now login and start creating events.\n\nThank you,\nCareer Fair Team`
+        subject: "Your Admin Account is Approved!",
+        message: `Hello ${admin.name},\n\nYour Admin account has been approved by the Super Admin.\nYou can now login and start creating events.\n\nThank you,\nCareer Fair Team`
       });
     } catch (err) {
       console.error("Failed to send approval success email", err);
     }
     
-    res.status(200).send("<html><body style='font-family:sans-serif; text-align:center; margin-top:50px;'><h2>Organizer Approved Successfully!</h2><p>An email has been sent to the organizer.</p></body></html>");
+    res.status(200).send("<html><body style='font-family:sans-serif; text-align:center; margin-top:50px;'><h2>Admin Approved Successfully!</h2><p>An email has been sent to the admin.</p></body></html>");
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

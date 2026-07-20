@@ -259,8 +259,8 @@ const EventStickyNav = ({ showHighlights, showGallery, showFaqs, showThingsToKno
               )}
             </div>
           ) : (
-            <Link to={eventId ? `/event/${eventId}/book` : "/login"} className="relative bg-[#ff4a4a] text-white px-6 py-2.5 rounded-full font-semibold hover:bg-[#ff3333] transition-colors flex items-center gap-2">
-              Book Your Tickets
+            <Link to={eventId ? `/event/${eventId}/attendee-details` : "/login"} className="relative bg-[#ff4a4a] text-white px-6 py-2.5 rounded-full font-semibold hover:bg-[#ff3333] transition-colors flex items-center gap-2">
+              Register Now
               <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white shadow-sm uppercase">
               Free
               </span>

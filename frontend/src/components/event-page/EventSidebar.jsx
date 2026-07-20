@@ -57,10 +57,10 @@ const EventSidebar = ({ event }) => {
           )}
         </div>
         <Link 
-          to={`/event/${event._id || window.location.pathname.split('/').pop()}/book`}
+          to={`/event/${event._id || window.location.pathname.split('/').pop()}/attendee-details`}
           className="bg-secondary hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all text-white py-3 px-8 rounded-xl text-[16px] font-semibold cursor-pointer text-center"
         >
-          {event.ticketButtonText || "Book Tickets"}
+          {event.ticketButtonText || "Register Now"}
         </Link>
       </div>
     </div>

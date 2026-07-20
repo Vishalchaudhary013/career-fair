@@ -17,12 +17,11 @@ import virtualEventImg from "../../asserts/virtual_event.png";
 import inPersonEventImg from "../../asserts/in_person_event.png";
 
 const stepMeta = {
-  "basic-information": { label: "Add Event Details - step 1/6", step: 1 },
-  "location":          { label: "Add Event Details - step 2/6", step: 2 },
-  "event-information": { label: "Add Event Details - step 3/6", step: 3 },
-  "banner-photos":     { label: "Add Event Details - step 4/6", step: 4 },
-  "tickets":           { label: "Add Tickets - step 5/6", step: 5 },
-  "question":          { label: "Registration Form - step 6/6", step: 6 },
+  "basic-information": { label: "Add Event Details - step 1/5", step: 1 },
+  "location":          { label: "Add Event Details - step 2/5", step: 2 },
+  "event-information": { label: "Add Event Details - step 3/5", step: 3 },
+  "banner-photos":     { label: "Add Event Details - step 4/5", step: 4 },
+  "question":          { label: "Registration Form - step 5/5", step: 5 },
 };
 
 const CreateEventPage = () => {
@@ -156,8 +155,8 @@ const CreateEventPage = () => {
 
   // ── Questions ──
   const [addedQuestions, setAddedQuestions] = useState([
-    { id: "q_name",  title: "Name",     type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: true },
-    { id: "q_email", title: "Email ID", type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: true },
+    { id: "q_name",  title: "Name",     type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: false },
+    { id: "q_email", title: "Email ID", type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: false },
   ]);
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [showCustomQuestionForm, setShowCustomQuestionForm] = useState(false);
@@ -171,7 +170,7 @@ const CreateEventPage = () => {
   const currentStep = stepMeta[activeTab] ? {
     ...stepMeta[activeTab],
     label: activeTab === "location" && eventType === "virtual" 
-      ? "Add Joining Details - step 2/4" 
+      ? "Add Joining Details - step 2/5" 
       : stepMeta[activeTab].label
   } : null;
 
@@ -395,23 +394,7 @@ const CreateEventPage = () => {
       const faqsData = faqs.filter(f => f.q.trim() && f.a.trim()).map(f => ({ question: f.q, answer: f.a, open: f.open }));
       fd.append("faqs", JSON.stringify(faqsData));
       
-      const ticketsData = tickets.map(t => {
-        const start = new Date(`${t.startDate}T${t.startTime}`);
-        const end = new Date(`${t.endDate}T${t.endTime}`);
-        return {
-          ticketButtonText,
-          ticketName: t.name,
-          category: t.category,
-          price: Number(t.price) || 0,
-          currency: t.currency,
-          totalQuantity: Number(t.totalQuantity) || 0,
-          minBooking: Number(t.minBooking) || 1,
-          maxBooking: Number(t.maxBooking) || 10,
-          startFroms: start.toISOString(),
-          endsat: end.toISOString()
-        };
-      });
-      fd.append("tickets", JSON.stringify(ticketsData));
+      fd.append("tickets", JSON.stringify([]));
       
       const questionsData = addedQuestions.map(q => {
         let mappedType = "text";
@@ -654,29 +637,7 @@ const CreateEventPage = () => {
               />
             )}
 
-            {activeTab === "tickets" && (
-              <TicketsTab
-                ticketButtonText={ticketButtonText} setTicketButtonText={setTicketButtonText}
-                tickets={tickets}
-                showTicketForm={showTicketForm} setShowTicketForm={setShowTicketForm}
-                editingTicketIndex={editingTicketIndex}
-                ticketName={ticketName} setTicketName={setTicketName}
-                ticketCategory={ticketCategory} setTicketCategory={setTicketCategory}
-                totalQuantity={totalQuantity} setTotalQuantity={setTotalQuantity}
-                minBooking={minBooking} setMinBooking={setMinBooking}
-                maxBooking={maxBooking} setMaxBooking={setMaxBooking}
-                ticketStartDate={ticketStartDate} setTicketStartDate={setTicketStartDate}
-                ticketStartTime={ticketStartTime} setTicketStartTime={setTicketStartTime}
-                ticketEndDate={ticketEndDate} setTicketEndDate={setTicketEndDate}
-                ticketEndTime={ticketEndTime} setTicketEndTime={setTicketEndTime}
-                ticketPrice={ticketPrice} setTicketPrice={setTicketPrice}
-                ticketCurrency={ticketCurrency} setTicketCurrency={setTicketCurrency}
-                handleCreateTicket={handleCreateTicket}
-                editTicket={editTicket}
-                deleteTicket={deleteTicket}
-                resetTicketForm={resetTicketForm}
-              />
-            )}
+
 
             {activeTab === "question" && (
               <QuestionsTab

@@ -3,6 +3,38 @@ import { FaMapMarkerAlt, FaBus, FaPlane, FaTrain } from "react-icons/fa";
 import { FaArrowRightLong, FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { MapPin, Navigation } from "lucide-react";
 
+const getEmbedMapUrl = (venue) => {
+  const locationLink = venue?.location || "";
+  
+  if (locationLink) {
+    const atMatch = locationLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (atMatch) {
+      return `https://maps.google.com/maps?q=${atMatch[1]},${atMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    }
+
+    const dMatch = locationLink.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    if (dMatch) {
+      return `https://maps.google.com/maps?q=${dMatch[1]},${dMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    }
+
+    const qMatch = locationLink.match(/(?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) {
+      return `https://maps.google.com/maps?q=${qMatch[1]},${qMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    }
+  }
+
+  const fullAddr = [
+    venue?.venueName,
+    venue?.addressLine1,
+    venue?.addressLine2,
+    venue?.city,
+    venue?.pincode
+  ].filter(Boolean).join(", ");
+
+  const encoded = encodeURIComponent(fullAddr || "New Delhi, India");
+  return `https://maps.google.com/maps?q=${encoded}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+};
+
 const EventLocation = ({ organizer, dbEvent }) => {
   const venue = dbEvent?.venue || {};
   const contact = dbEvent?.contact || {};
@@ -16,13 +48,6 @@ const EventLocation = ({ organizer, dbEvent }) => {
     venue.city,
     venue.pincode
   ].filter(Boolean).join(", ");
-  const mapQueryParts = [];
-  if (venue.venueName) mapQueryParts.push(venue.venueName);
-  if (venue.addressLine1) mapQueryParts.push(venue.addressLine1);
-  if (venue.city) mapQueryParts.push(venue.city);
-
-  const mapSearchAddress = mapQueryParts.length > 0 ? mapQueryParts.join(", ") : fullAddress;
-  const encodedAddress = encodeURIComponent(mapSearchAddress || "New Delhi, India");
 
   return (
     <>
@@ -35,8 +60,8 @@ const EventLocation = ({ organizer, dbEvent }) => {
 
             <div className='flex items-center gap-6'>
               <h2 className="text-2xl font-bold text-gray-900">Venue Details</h2>
-              {!dbEvent.isOnline && fullAddress && (
-                <a href={venue.location || `https://maps.google.com/?q=${encodedAddress}`} target="_blank" rel="noreferrer" className=" flex items-center gap-1.5 text-[13.5px] text-secondary font-medium  bg-[#D3F7E1] py-0.5 px-4 rounded-full">
+              {!dbEvent.isOnline && (fullAddress || venue.location) && (
+                <a href={venue.location ? (venue.location.startsWith("http") ? venue.location : `https://${venue.location}`) : `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`} target="_blank" rel="noreferrer" className=" flex items-center gap-1.5 text-[13.5px] text-secondary font-medium  bg-[#D3F7E1] py-0.5 px-4 rounded-full">
                   <Navigation size={15} /> Get Directions
                 </a>
               )}
@@ -108,9 +133,9 @@ const EventLocation = ({ organizer, dbEvent }) => {
 
 
               {!dbEvent.isOnline && (
-                <div className="w-full lg:w-[30%] h-80 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 relative flex items-center justify-center">
+                <div className="w-full lg:w-[35%] h-80 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 relative flex items-center justify-center">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${encodedAddress}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                    src={getEmbedMapUrl(venue)}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -120,13 +145,16 @@ const EventLocation = ({ organizer, dbEvent }) => {
                     className="absolute inset-0 w-full h-full z-0"
                   ></iframe>
 
-
-                  <div
-                    className="absolute z-10 pointer-events-none text-[#ea4335]"
-                    style={{ filter: "drop-shadow(0px 3px 2px rgba(0,0,0,0.3))", transform: "translateY(-50%)" }}
-                  >
-                    <FaMapMarkerAlt size={40} />
-                  </div>
+                  {venue.location && (
+                    <a
+                      href={venue.location.startsWith("http") ? venue.location : `https://${venue.location}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute top-3 left-3 z-10 bg-white/90 hover:bg-white text-primary font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 transition flex items-center gap-1"
+                    >
+                      Open in Maps ↗
+                    </a>
+                  )}
                 </div>
               )}
 

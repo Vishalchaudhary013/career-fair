@@ -3,7 +3,6 @@ const allItems = [
   "location",
   "event-information",
   "banner-photos",
-  "tickets",
   "question"
 ];
 
@@ -30,11 +29,6 @@ const CreateEventSidebar = ({ activeTab, setActiveTab, maxReachedStep = 0, event
       id: "banner-photos",
       label: "Banner and photos",
       description: "Fair banner & logo"
-    },
-    {
-      id: "tickets",
-      label: "Tickets",
-      description: "Pricing & capacity details"
     },
     {
       id: "question",

@@ -11,7 +11,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
   const [bookings, setBookings] = useState([]);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("tickets"); 
+  const [activeTab, setActiveTab] = useState("form"); 
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
@@ -350,20 +350,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
         )}
       </div>
 
-      <div className="flex border-b border-[#E2EAFC] bg-slate-50/50">
-        <button 
-          onClick={() => setActiveTab("tickets")}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === "tickets" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
-        >
-          Ticket (issued)
-        </button>
-        <button 
-          onClick={() => setActiveTab("form")}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === "form" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
-        >
-          Registration Form (Applied)
-        </button>
-      </div>
+
 
       <div className="overflow-x-auto hide-scrollbar">
         <table className="min-w-full text-sm">

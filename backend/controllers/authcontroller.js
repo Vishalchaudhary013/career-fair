@@ -35,7 +35,7 @@ export const registerUser = async (req,res) => {
       userName,
       password:hashPassword,
       adminVisiblePassword,
-      role: "ORGANIZER",
+      role: "ADMIN",
       otp,
       otpExpires,
       isVerified: false,
@@ -64,16 +64,16 @@ export const registerUser = async (req,res) => {
       for (const sa of superAdmins) {
         await sendEmail({
           email: sa.email,
-          subject: "New Organizer Pending Approval",
+          subject: "New Admin Pending Approval",
           html: `<p>Hello Super Admin,</p>
-                 <p>A new user has registered as an Organizer and is awaiting your approval.</p>
+                 <p>A new user has registered as an Admin and is awaiting your approval.</p>
                  <ul>
                    <li><strong>Name:</strong> ${newUser.name}</li>
                    <li><strong>Email:</strong> ${newUser.email}</li>
                    <li><strong>Organisation:</strong> ${newUser.organisationName}</li>
                  </ul>
                  <p>Click the link below to approve them instantly:</p>
-                 <a href="${approvalUrl}" style="display:inline-block;padding:10px 15px;background-color:#110060;color:white;text-decoration:none;border-radius:5px;">Approve Organizer</a>`
+                 <a href="${approvalUrl}" style="display:inline-block;padding:10px 15px;background-color:#110060;color:white;text-decoration:none;border-radius:5px;">Approve Admin</a>`
         });
       }
     } catch (err) {
@@ -122,7 +122,7 @@ export const loginUser =  async(req,res)=>{
       });
     }
 
-    if (user.role === "ORGANIZER" && !user.isApproved) {
+    if ((user.role === "ADMIN" || user.role === "ORGANIZER") && !user.isApproved) {
       return res.status(403).json({
         success: false,
         message: "Your account is pending Super Admin approval. You will receive an email once approved."
@@ -173,6 +173,89 @@ export const loginUser =  async(req,res)=>{
 
 }
 
+export const sendOTP = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+    const userEmail = email?.toLowerCase()?.trim() || "";
+
+    if (!userEmail) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    let user = await User.findOne({ email: userEmail });
+
+    if (user) {
+      if (user.role === "ADMIN" || user.role === "ORGANIZER" || user.role === "SUPER_ADMIN") {
+        return res.status(400).json({
+          success: false,
+          message: "This email is already registered. Please log in using your account."
+        });
+      }
+
+      if (user.isVerified) {
+        const token = jwt.sign(
+          { id: user._id, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+        return res.status(200).json({
+          success: true,
+          alreadyVerified: true,
+          message: "Logged in successfully",
+          token,
+          user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isApproved: user.isApproved,
+            isVerified: user.isVerified
+          }
+        });
+      }
+
+      user.otp = otp;
+      user.otpExpires = otpExpires;
+      await user.save();
+    } else {
+      user = await User.create({
+        name: userEmail.split("@")[0],
+        email: userEmail,
+        role: role || "USER",
+        otp,
+        otpExpires,
+        isVerified: false,
+        isApproved: true,
+      });
+    }
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Login Verification Code",
+        html: `<p>Hello,</p>
+               <p>Your verification code is: <strong>${otp}</strong></p>
+               <p>This code is valid for 10 minutes.</p>`
+      });
+      console.log(`OTP sent to ${user.email}: ${otp}`);
+    } catch (err) {
+      console.error("Failed to send OTP email:", err.message);
+      console.log(`[FALLBACK] OTP for ${user.email} is: ${otp}`);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification code sent to your email",
+      devOtp: otp
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -184,8 +267,11 @@ export const verifyOTP = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (user.isVerified) {
-      return res.status(400).json({ success: false, message: "User is already verified" });
+    if (user.role === "ADMIN" || user.role === "ORGANIZER" || user.role === "SUPER_ADMIN") {
+      return res.status(400).json({
+        success: false,
+        message: "This email is already registered. Please log in using your account."
+      });
     }
 
     if (user.otp !== otp) {
@@ -200,13 +286,6 @@ export const verifyOTP = async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
-
-    if (user.role === "ORGANIZER" && !user.isApproved) {
-      return res.status(200).json({
-        success: true,
-        message: "Email verified successfully! However, your account is pending Super Admin approval. You will be notified once approved.",
-      });
-    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -234,7 +313,7 @@ export const verifyOTP = async (req, res) => {
       message: error.message
     });
   }
-}
+};
 
 
 export const forgetPassword = async (req,res) => {

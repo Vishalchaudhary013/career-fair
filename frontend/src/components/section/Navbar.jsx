@@ -151,7 +151,9 @@ const Navbar = () => {
                   
                   <div className="absolute right-0 top-full pt-4 w-[240px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                     <div className="bg-white rounded shadow-2xl border border-gray-200 py-3 flex flex-col">
-                      <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : `/admin-dashboard/${user.id}`} className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Dashboard</Link>
+                      {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+                        <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : `/admin-dashboard/${user.id || ""}`} className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Dashboard</Link>
+                      )}
                       {/* <Link to="/profile" className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Manage Profile</Link> */}
                       <hr className="my-2 border-gray-100" />
                       <button onClick={handleLogout} className="px-5 py-2.5 text-left text-red-600 hover:bg-red-50 transition-colors font-medium">Logout</button>
@@ -223,9 +225,11 @@ const Navbar = () => {
               
               {user ? (
                 <>
-                  <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : "/admin-dashboard"} className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
-                    <User size={18} className="text-primary" /> Dashboard
-                  </Link>
+                  {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+                    <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : `/admin-dashboard/${user.id || ""}`} className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
+                      <User size={18} className="text-primary" /> Dashboard
+                    </Link>
+                  )}
                   <button onClick={() => { handleLogout(); setShowMobileMenu(false); }} className="flex items-center gap-3 px-2 py-2 text-red-600 font-medium text-left">
                     <LogOut size={18} /> Logout
                   </button>

@@ -149,25 +149,18 @@ const QuestionsTab = ({
     setEditingQuestionId(q.id);
     setQuestionStatus(q.status || "Mandatory");
     setQuestionTickets(q.tickets || "All Tickets");
-
-    if (q.id.startsWith("pb_")) {
-      setSelectedPredefinedQuestion(q);
-      setShowQuestionBank(false);
-      setShowCustomQuestionForm(false);
+    setCustomQuestionTitle(q.title);
+    setCustomQuestionType(q.type || "Text");
+    if (q.options) {
+      setCustomOptions(q.options);
     } else {
-      setCustomQuestionTitle(q.title);
-      setCustomQuestionType(q.type);
-      if (q.options) {
-        setCustomOptions(q.options);
-      } else {
-        setCustomOptions([{ id: 1, value: "Option 1" }, { id: 2, value: "Option 2" }]);
-      }
-      setAllowOther(!!q.allowOther);
-      
-      setShowCustomQuestionForm(true);
-      setShowQuestionBank(false);
-      setSelectedPredefinedQuestion(null);
+      setCustomOptions([{ id: 1, value: "Option 1" }, { id: 2, value: "Option 2" }]);
     }
+    setAllowOther(!!q.allowOther);
+    
+    setShowCustomQuestionForm(true);
+    setShowQuestionBank(false);
+    setSelectedPredefinedQuestion(null);
   };
 
   const handleSavePredefinedQuestion = () => {
@@ -252,7 +245,7 @@ const QuestionsTab = ({
       </div>
       <div className="space-y-8">
         <div><label className="block text-[15px] font-bold text-gray-700 mb-2">Question Status</label><StatusToggle /></div>
-        <div><label className="block text-[15px] font-bold text-gray-700 mb-2">Show this question for the following tickets</label><TicketsToggle /></div>
+
         <button onClick={handleSavePredefinedQuestion} className="bg-secondary hover:bg-secondary/90 text-white px-8 py-2.5 rounded-full text-sm font-semibold transition cursor-pointer">
           {editingQuestionId ? "Update Question" : "Add Question"}
         </button>
@@ -385,7 +378,7 @@ const QuestionsTab = ({
           </div>
         )}
         <div><label className="block text-[15px] font-bold text-gray-700 mb-2">Question Status</label><StatusToggle /></div>
-        <div><label className="block text-[15px] font-bold text-gray-700 mb-2">Show this question for the following tickets</label><TicketsToggle /></div>
+
         <button onClick={handleSaveCustomQuestion} disabled={!customQuestionTitle.trim() || !customQuestionType} className="bg-secondary hover:bg-secondary/90 text-white px-8 py-2.5 rounded-full text-sm font-semibold transition cursor-pointer disabled:opacity-50">
           {editingQuestionId ? "Update Question" : "Add Question"}
         </button>
@@ -404,16 +397,14 @@ const QuestionsTab = ({
               <label className="block text-[15px] font-bold text-gray-600">
                 {q.title} <span className="text-gray-400 font-semibold">({q.status})</span>
               </label>
-              {!q.isDefault && (
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => handleEditQuestion(q)} title="Edit Question" className="text-primary hover:bg-primary/10 p-1.5 rounded cursor-pointer transition">
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={() => handleRemoveQuestion(q.id)} title="Delete Question" className="text-secondary hover:bg-secondary/10 p-1.5 rounded cursor-pointer transition">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                <button onClick={() => handleEditQuestion(q)} title="Edit Question" className="text-primary hover:bg-primary/10 p-1.5 rounded cursor-pointer transition">
+                  <Edit2 size={16} />
+                </button>
+                <button onClick={() => handleRemoveQuestion(q.id)} title="Delete Question" className="text-secondary hover:bg-secondary/10 p-1.5 rounded cursor-pointer transition">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
             <div className="mt-2">{renderInputForQuestion(q)}</div>
           </div>

@@ -3,17 +3,37 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 
+const parseTextContent = (rawText) => {
+  if (!rawText || !rawText.trim()) return null;
+
+  const lines = rawText
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return null;
+
+  const numberedPattern = /^\d+[\.\)\:\-]\s*/;
+  const isNumbered = lines.some(line => numberedPattern.test(line));
+
+  const cleanedLines = lines.map(line => 
+    line.replace(numberedPattern, '').replace(/^[\*\-\•]\s*/, '').trim()
+  ).filter(Boolean);
+
+  return { isNumbered, items: cleanedLines };
+};
+
 const ThingsToKnow = ({ instructions, termsText, faqs = [] }) => {
   const [openSection, setOpenSection] = useState(-1);
   const [openIndex, setOpenIndex] = useState(-1);
 
   const sections = [];
-  if (instructions) sections.push({ title: "Instructions", content: [instructions] });
-  if (termsText) sections.push({ title: "Terms & Conditions", content: [termsText] });
+  if (instructions) sections.push({ title: "Instructions", raw: instructions });
+  if (termsText) sections.push({ title: "Terms & Conditions", raw: termsText });
 
-const toggleAccordion = (index) => {
-  setOpenIndex(openIndex === index ? -1 : index);
-};
+  const toggleAccordion = (index) => {
+    setOpenIndex(openIndex === index ? -1 : index);
+  };
 
   if (sections.length === 0 && (!faqs || faqs.length === 0)) {
     return null;
@@ -28,6 +48,7 @@ const toggleAccordion = (index) => {
           <div className="columns-1 md:columns-2 gap-4 mb-6">
             {sections.map((section, index) => {
               const isOpen = openSection === index;
+              const parsed = parseTextContent(section.raw);
 
               return (
                 <div key={section.title} className="border bg-white border-black/10 rounded-lg overflow-hidden ">
@@ -46,11 +67,21 @@ const toggleAccordion = (index) => {
                     />
                   </button>
 
-                  {isOpen && (
-                    <div className="px-4 pb-4 text-sm text-black/75 space-y-2">
-                      {section.content.map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
+                  {isOpen && parsed && (
+                    <div className="px-5 pb-5 text-sm text-gray-700">
+                      {parsed.isNumbered ? (
+                        <ol className="list-decimal pl-5 space-y-2">
+                          {parsed.items.map((item, i) => (
+                            <li key={i} className="leading-relaxed">{item}</li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-2">
+                          {parsed.items.map((item, i) => (
+                            <li key={i} className="leading-relaxed">{item}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                 </div>

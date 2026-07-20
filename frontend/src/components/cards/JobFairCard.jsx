@@ -202,7 +202,7 @@ const JobFairCard = ({ jobFair }) => {
 
       {/* Card Body */}
       <div className="px-6 pt-[20px] pb-2">
-        <div className="h-[105px] border-b border-gray-200">
+        <div className="min-h-[105px] border-b border-gray-200">
           <div className="flex justify-center items-center bg-blue-100 text-blue-700 text-sm font-medium p-[8px] rounded-full mb-3">
             <i className={isOnline ? "bi bi-globe me-2 text-blue-600" : "bi bi-geo-alt-fill me-2 text-blue-600"}></i>
             {displayLocation}

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react"
-import { loginUser, registerUser, verifyOtpUser } from "../services/authApi";
+import { loginUser, registerUser, sendOtpApi, verifyOtpUser } from "../services/authApi";
 
 
 const AuthContext = createContext();
@@ -44,6 +44,24 @@ export const AuthProvider = ({children})=>{
         }
     }
 
+    const sendOtp = async (data) => {
+        try {
+            setLoading(true);
+            const res = await sendOtpApi(data);
+            if (res.alreadyVerified && res.token && res.user) {
+                setUser(res.user);
+                setToken(res.token);
+                localStorage.setItem("token", res.token);
+                localStorage.setItem("user", JSON.stringify(res.user));
+            }
+            return res;
+        } catch (error) {
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const verifyOtp = async(data) => {
         try {
             setLoading(true);
@@ -78,6 +96,7 @@ export const AuthProvider = ({children})=>{
             login,
             register,
             verifyOtp,
+            sendOtp,
             logout,
             isAuthenticated : !! token,
         }} >

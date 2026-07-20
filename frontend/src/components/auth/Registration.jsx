@@ -73,10 +73,10 @@ const navigate = useNavigate()
                 Career Fairs
               </Link>
               <h2 className="mt-8 max-w-lg text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-                Create your organizer profile
+                Create your admin profile
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-white/80 sm:text-base">
-                New users can sign up with a host identity, organization details, and work email. We support email verification and optional OTP verification for contact details.
+                Admin users can sign up with identity, organization details, and work email. Account activation requires email verification and Super Admin approval.
               </p>
             </div>
           </div>
@@ -86,7 +86,7 @@ const navigate = useNavigate()
           <div className="mx-auto flex h-full max-w-2xl flex-col justify-center">
             <div className="mb-8">
               <span className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                New user signup
+                Admin Signup
               </span>
               <h1 className="mt-5 text-3xl font-semibold tracking-tight text-black sm:text-4xl text-center">
                 Sign up to create and manage fairs
@@ -259,7 +259,7 @@ onChange={handleChange}
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful</h3>
                 <p className="text-sm text-gray-600 mb-8 leading-relaxed">
-                  Your email has been verified! However, since you registered as an Organizer, your account is currently pending <span className="font-semibold text-gray-900">Super Admin approval</span>. You will receive an email as soon as it is approved.
+                  Your email has been verified! However, since you registered as an Admin, your account is currently pending <span className="font-semibold text-gray-900">Super Admin approval</span>. You will receive an email as soon as it is approved.
                 </p>
                 <button
                   onClick={() => navigate('/login')}
