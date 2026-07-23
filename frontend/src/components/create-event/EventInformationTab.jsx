@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Info, Plus, Minus, ChevronDown, ChevronUp, AlertCircle, Briefcase, Music, Trophy, Mic, Palette, Code, Users, Medal, HelpCircle, Video, Wrench, Ticket } from "lucide-react";
 import { SERVER_URL } from "../../config";
+import Select from "react-select";
+import { City, State } from "country-state-city";
+import { FiUpload, FiX, FiTrash2 } from "react-icons/fi";
+import { FaBuilding } from "react-icons/fa";
+
+const INDIA_ISO_CODE = 'IN';
+const INDIA_STATES = State.getStatesOfCountry(INDIA_ISO_CODE).map(s => ({ value: s.name, label: s.name, isoCode: s.isoCode }));
 
 const DEFAULT_CATEGORIES = [
   { value: "Career Drive",    label: "Career Drive",    icon: Briefcase },
@@ -537,7 +544,7 @@ const EventInformationTab = ({
 
       
       <div>
-        <h3 className="text-sm font-semibold text-primary mb-3">Fair Statistics</h3>
+        <h3 className="text-sm font-semibold text-primary mb-3">Highlights</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {fairStats.map((stat, i) => (
             <div key={i} className="border border-gray-200 rounded-lg p-3 relative group">
@@ -579,7 +586,7 @@ const EventInformationTab = ({
           onClick={() => setFairStats(prev => [...prev, { label: "", value: "" }])} 
           className="mt-3 flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer"
         >
-          <Plus size={14} /> Add Statistic
+          <Plus size={14} /> Add Highlights
         </button>
       </div>
 
@@ -590,8 +597,8 @@ const EventInformationTab = ({
         </div>
         
         {/* EVENT-LEVEL COMPANY LIST DOCUMENT UPLOAD */}
-        <div className="border border-gray-200 rounded-lg p-4 mb-4">
-          <label className="block text-xs font-semibold text-gray-500 mb-2">Company List Document (PDF/Excel - Optional)</label>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-5">
+          <label className="block text-xs font-bold text-slate-600 mb-2">Company List Document (PDF/Excel - Optional)</label>
           <div className="flex items-center gap-4">
             <input 
               type="file" 
@@ -601,7 +608,7 @@ const EventInformationTab = ({
                   setCompanyListDocumentUrl({ file: e.target.files[0], preview: URL.createObjectURL(e.target.files[0]), existingName: "" });
                 }
               }}
-              className="w-full text-sm font-medium border-b border-gray-200 pb-1 outline-none focus:border-primary bg-transparent file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" 
+              className="w-full text-xs font-medium outline-none file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-primary file:text-white hover:file:bg-primary/90" 
             />
             {companyListDocumentUrl?.existingName && !companyListDocumentUrl?.file && (
               <a href={`${companyListDocumentUrl.preview}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-medium truncate flex-1 hover:underline cursor-pointer">
@@ -618,44 +625,629 @@ const EventInformationTab = ({
 
         <div className="space-y-4">
           {companies.map((c, i) => (
-            <div key={i} className="border border-gray-200 rounded-lg p-4 relative group">
+            <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 relative shadow-sm mb-6">
               {companies.length > 1 && (
-                <button onClick={() => removeCompany(i)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary/10 text-secondary flex items-center justify-center hover:bg-secondary/20 transition cursor-pointer"><Minus size={12} /></button>
+                <button type="button" onClick={() => removeCompany(i)} className="absolute top-3 right-3 p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer" title="Remove Company"><FiTrash2 size={14} /></button>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Company Name</label>
-                  <input type="text" placeholder="e.g. Google" value={c.companyName} onChange={e => updateCompany(i, "companyName", e.target.value)} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Logo URL</label>
-                  <input type="text" placeholder="https://..." value={c.companyLogoUrl || ""} onChange={e => updateCompany(i, "companyLogoUrl", e.target.value)} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Company Logo (Upload)</label>
-                  <input type="file" accept="image/*" onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
-                      updateCompany(i, "companyLogo", e.target.files[0]);
-                    }
-                  }} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Job Profile</label>
-                  <input type="text" placeholder="e.g. Software Engineer" value={c.jobProfile} onChange={e => updateCompany(i, "jobProfile", e.target.value)} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Location</label>
-                  <input type="text" placeholder="e.g. Remote" value={c.jobLocation} onChange={e => updateCompany(i, "jobLocation", e.target.value)} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent placeholder-gray-300" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Candidates Required</label>
-                  <input type="number" placeholder="e.g. 5" value={c.candidatesRequired} onChange={e => updateCompany(i, "candidatesRequired", e.target.value)} className="w-full text-sm font-medium border-b border-gray-200 pb-1 mb-2 outline-none focus:border-primary bg-transparent placeholder-gray-300" />
-                </div>
-                <div className="col-span-1 sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Description</label>
-                  <textarea rows={2} placeholder="Briefly describe the role or company..." value={c.description || ""} onChange={e => updateCompany(i, "description", e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm text-gray-700 outline-none focus:border-primary bg-transparent resize-y" />
-                </div>
+              <div className="mb-4 text-primary font-bold text-lg border-b border-gray-100 pb-2">Company #{i + 1}</div>
+              <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">Company Logo</label>
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateCompany(i, "logoSourceMode", "upload");
+                          
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition ${c.logoSourceMode === "upload"
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateCompany(i, "logoSourceMode", "link");
+                          updateCompany(i, "companyLogoUrl", c.logoLink || "");
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition ${c.logoSourceMode === "link"
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                      >
+                        Image Link
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      {c.companyLogoUrl ? (
+                        <div className="relative w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          <img src={c.companyLogoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (c.logoSourceMode === "upload") {
+                                setLogoFile(null);
+                              } else {
+                                updateCompany(i, "logoLink", "");
+                              }
+                              updateCompany(i, "companyLogoUrl", "");
+                            }}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600 transition"
+                          >
+                            <FiX size={10} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                          <FaBuilding size={24} />
+                        </div>
+                      )}
+
+                      {c.logoSourceMode === "upload" ? (
+                        <label className="flex-grow flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/50 cursor-pointer hover:bg-slate-50 hover:border-primary/45 transition h-16">
+                          <div className="flex flex-col items-center text-center">
+                            <FiUpload size={14} className="text-slate-400 mb-1" />
+                            <span className="text-[9px] font-bold text-primary">Upload logo</span>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={e => { if (e.target.files && e.target.files[0]) { updateCompany(i, "companyLogo", e.target.files[0]); updateCompany(i, "companyLogoUrl", URL.createObjectURL(e.target.files[0])); } }}
+                            className="hidden"
+                          />
+                        </label>
+                      ) : (
+                        <div className="flex-grow">
+                          <input
+                            type="url"
+                            name="logoLink"
+                            value={c.logoLink}
+                            onChange={(e) => {
+                              updateCompany(i, "logoLink", e.target.value);
+                              updateCompany(i, "companyLogoUrl", e.target.value);
+                            }}
+                            placeholder="Image URL..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
               </div>
+
+              <div className="border-t border-slate-200 pt-4">
+                  <h4 className="text-sm font-bold text-slate-800 mb-4">Job Details</h4>
+                  
+                  <div className="mb-4">
+                      {c.jobProfile.map((job, index) => (
+                        <div key={index} className="flex flex-col sm:flex-row gap-4 mb-4 items-end">
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Title </label>
+                            <input
+                              type="text"
+                              placeholder="Job Title"
+                              value={job.title}
+                              onChange={(e) => {
+                                const newProfiles = [...(c.jobProfile || [])];
+                                newProfiles[index].title = e.target.value;
+                                updateCompany(i, "jobProfile", newProfiles);
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Type</label>
+                            <select
+                              value={job.type}
+                              onChange={(e) => {
+                                const newProfiles = [...(c.jobProfile || [])];
+                                newProfiles[index].type = e.target.value;
+                                updateCompany(i, "jobProfile", newProfiles);
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">--Select Type--</option>
+                                <option value="Full Time">Full Time</option>
+                                <option value="Part Time">Part Time</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Contract">Contract</option>
+                            </select>
+                          </div>
+                          {index > 0 && (
+                            <button type="button" onClick={() => {
+                              const newProfiles = (c.jobProfile || []).filter((_, idx) => idx !== index);
+                              updateCompany(i, "jobProfile", newProfiles);
+                            }} className="text-red-500 hover:text-red-700 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg shrink-0">
+                              <FiX size={16} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => updateCompany(i, "jobProfile", [...(c.jobProfile || []), { title: "", type: "" }])} className="text-xs text-primary font-bold hover:underline">+ Add Job Title</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Qualification</label>
+                        <input
+                          type="text"
+                          name="qualification"
+                          value={c.qualification}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">No. of Position(s)</label>
+                        <input
+                          type="number"
+                          name="candidatesRequired"
+                          value={c.candidatesRequired}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Salary Range</label>
+                        <div className="flex gap-2">
+                            <input
+                              type="number"
+                              name="minSalary"
+                              value={c.minSalary}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              placeholder="Min Sal"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <input
+                              type="number"
+                              name="maxSalary"
+                              value={c.maxSalary}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              placeholder="Max Sal"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <select
+                              name="salaryType"
+                              value={c.salaryType}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
+                            >
+                                <option value="Per Month">Per Month</option>
+                                <option value="Per Year">Per Year</option>
+                            </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Experience Required</label>
+                        <div className="flex gap-2">
+                            <select
+                              name="minExperience"
+                              value={c.minExperience}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">-Min Exp-</option>
+                                {[...Array(15)].map((_, i) => <option key={i} value={i}>{i}</option>)}
+                            </select>
+                            <select
+                              name="maxExperience"
+                              value={c.maxExperience}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">-Max Exp-</option>
+                                {[...Array(20)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                            </select>
+                            <select
+                              name="experienceType"
+                              value={c.experienceType}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
+                            >
+                                <option value="Months">Months</option>
+                                <option value="Years">Years</option>
+                            </select>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Job Description</label>
+                    <textarea
+                      name="description"
+                      value={c.description}
+                      onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                      placeholder="Job Description and Profile Description (Minimum 100 to Maximum 500 characters)"
+                      rows="3"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white resize-none"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    {c.locations.map((loc, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-4 mb-4 items-end">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location State</label>
+                          <Select
+                            options={INDIA_STATES}
+                            value={INDIA_STATES.find(s => s.value === loc.state) || null}
+                            onChange={(selected) => {
+                              const newLocs = [...(c.locations || [])];
+                              newLocs[index].state = selected ? selected.value : "";
+                              newLocs[index].city = ""; 
+                              updateCompany(i, "locations", newLocs);
+                            }}
+                            placeholder="Search State..."
+                            isClearable
+                            isSearchable
+                            styles={{
+                              control: (base, state) => ({
+                                ...base,
+                                backgroundColor: '#f8fafc',
+                                borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                                boxShadow: 'none',
+                                '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                                borderRadius: '0.5rem',
+                                minHeight: '34px',
+                                fontSize: '12px'
+                              }),
+                              menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location City</label>
+                          <Select
+                            options={(() => {
+                              if (!loc.state) return [];
+                              const stateObj = INDIA_STATES.find(s => s.value === loc.state);
+                              if (!stateObj) return [];
+                              const cities = City.getCitiesOfState(INDIA_ISO_CODE, stateObj.isoCode);
+                              const uniqueCities = [...new Set(cities.map(c => c.name))];
+                              return uniqueCities.map(c => ({ value: c, label: c }));
+                            })()}
+                            value={loc.city ? { value: loc.city, label: loc.city } : null}
+                            onChange={(selected) => {
+                              const newLocs = [...(c.locations || [])];
+                              newLocs[index].city = selected ? selected.value : "";
+                              updateCompany(i, "locations", newLocs);
+                            }}
+                            placeholder={loc.state ? "Search City..." : "Select State first"}
+                            isDisabled={!loc.state}
+                            isClearable
+                            isSearchable
+                            styles={{
+                              control: (base, state) => ({
+                                ...base,
+                                backgroundColor: '#f8fafc',
+                                borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                                boxShadow: 'none',
+                                '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                                borderRadius: '0.5rem',
+                                minHeight: '34px',
+                                fontSize: '12px'
+                              }),
+                              menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Pincode</label>
+                          <input
+                            type="text"
+                            placeholder="Pincode"
+                            value={loc.pincode}
+                            onChange={(e) => {
+                              const newLocs = [...(c.locations || [])];
+                              newLocs[index].pincode = e.target.value;
+                              updateCompany(i, "locations", newLocs);
+                            }}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                          />
+                        </div>
+                        {index > 0 ? (
+                          <button type="button" onClick={() => {
+                            const newLocs = (c.locations || []).filter((_, idx) => idx !== index);
+                            updateCompany(i, "locations", newLocs);
+                          }} className="text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-lg bg-red-50 flex items-center justify-center h-[34px]">
+                            <FiTrash2 size={16} />
+                          </button>
+                        ) : <div className="w-9 h-[34px]"></div>}
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => updateCompany(i, "locations", [...(c.locations || []), { state: "", city: "", pincode: "" }])} className="text-xs text-primary font-bold hover:underline">+ Add Location</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Expiry Date</label>
+                        <input
+                          type="date"
+                          name="jobExpiryDate"
+                          value={c.jobExpiryDate}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Hiring Process</label>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
+                            {['FaceToFace', 'Writtentest', 'Telephonic', 'GroupDiscussion', 'Walk In'].map(method => (
+                                <label key={method} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={(c.hiringProcess || []).includes(method)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                            updateCompany(i, "hiringProcess", [...(c.hiringProcess || []), method]);
+                                        } else {
+                                            updateCompany(i, "hiringProcess", (c.hiringProcess || []).filter(m => m !== method));
+                                        }
+                                      }}
+                                    />
+                                    {method}
+                                </label>
+                            ))}
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Position Open for</label>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
+                            {['Male', 'Female', 'Transgender', 'Other'].map(gender => (
+                                <label key={gender} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={(c.positionOpenFor || []).includes(gender)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                            updateCompany(i, "positionOpenFor", [...(c.positionOpenFor || []), gender]);
+                                        } else {
+                                            updateCompany(i, "positionOpenFor", (c.positionOpenFor || []).filter(g => g !== gender));
+                                        }
+                                      }}
+                                    />
+                                    {gender}
+                                </label>
+                            ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Other Benefit</label>
+                        <select
+                          name="otherBenefit"
+                          value={c.otherBenefit}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">None selected</option>
+                            <option value="Health Insurance">Health Insurance</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Meals">Meals</option>
+                        </select>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Open for Physically Challenged?</label>
+                        <select
+                          name="openForPhysicallyChallenged"
+                          value={c.openForPhysicallyChallenged}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">--Select--</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Organisation Name</label>
+                        <input
+                          type="text"
+                          name="organisationName"
+                          value={c.organisationName}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-4 mt-6">
+                  <h4 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider ">Your Details</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Name</label>
+                        <input
+                          type="text"
+                          name="companyName"
+                          value={c.companyName}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Type</label>
+                        <select
+                          name="companyType"
+                          value={c.companyType}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">--Select--</option>
+                            <option value="Private">Private</option>
+                            <option value="Public">Public</option>
+                            <option value="Government">Government</option>
+                            <option value="NGO">NGO</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Contact Person Name</label>
+                        <input
+                          type="text"
+                          name="contactPersonName"
+                          value={c.contactPersonName}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Designation</label>
+                        <input
+                          type="text"
+                          name="designation"
+                          value={c.designation}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Mobile number</label>
+                        <input
+                          type="text"
+                          name="mobileNumber"
+                          value={c.mobileNumber}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          placeholder="Enter 10 Digit Phone No."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={c.email}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Role</label>
+                        <input
+                          type="text"
+                          name="yourDetailsJobRole"
+                          value={c.yourDetailsJobRole}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Total Number of Openings</label>
+                        <input
+                          type="number"
+                          name="yourDetailsTotalOpenings"
+                          value={c.yourDetailsTotalOpenings}
+                          onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">State</label>
+                        <Select
+                          options={INDIA_STATES}
+                          value={INDIA_STATES.find(s => s.value === c.yourDetailsState) || null}
+                          onChange={(selected) => {
+                            updateCompany(i, "yourDetailsState", selected ? selected.value : "");
+                            updateCompany(i, "yourDetailsCity", "");
+                          }}
+                          placeholder="Search State..."
+                          isClearable
+                          isSearchable
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              backgroundColor: '#f8fafc',
+                              borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                              boxShadow: 'none',
+                              '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                              borderRadius: '0.5rem',
+                              minHeight: '34px',
+                              fontSize: '12px'
+                            }),
+                            menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                          }}
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">City</label>
+                        <Select
+                          options={(() => {
+                            if (!c.yourDetailsState) return [];
+                            const stateObj = INDIA_STATES.find(s => s.value === c.yourDetailsState);
+                            if (!stateObj) return [];
+                            const cities = City.getCitiesOfState(INDIA_ISO_CODE, stateObj.isoCode);
+                            const uniqueCities = [...new Set(cities.map(c => c.name))];
+                            return uniqueCities.map(c => ({ value: c, label: c }));
+                          })()}
+                          value={c.yourDetailsCity ? { value: c.yourDetailsCity, label: c.yourDetailsCity } : null}
+                          onChange={(selected) => {
+                            updateCompany(i, "yourDetailsCity", selected ? selected.value : "");
+                          }}
+                          placeholder={c.yourDetailsState ? "Search City..." : "Select State first"}
+                          isDisabled={!c.yourDetailsState}
+                          isClearable
+                          isSearchable
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              backgroundColor: '#f8fafc',
+                              borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                              boxShadow: 'none',
+                              '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                              borderRadius: '0.5rem',
+                              minHeight: '34px',
+                              fontSize: '12px'
+                            }),
+                            menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Salary Range(INR)</label>
+                        <div className="flex gap-2">
+                            <input
+                              type="number"
+                              name="yourDetailsMinSalary"
+                              value={c.yourDetailsMinSalary}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              placeholder="Min Salary"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <input
+                              type="number"
+                              name="yourDetailsMaxSalary"
+                              value={c.yourDetailsMaxSalary}
+                              onChange={(e) => updateCompany(i, e.target.name, e.target.value)}
+                              placeholder="Max Salary"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                        </div>
+                      </div>
+                  </div>
+              </div>
+
             </div>
           ))}
         </div>

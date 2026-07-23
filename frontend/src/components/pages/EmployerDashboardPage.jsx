@@ -197,7 +197,7 @@ const EmployerDashboardPage = () => {
         <div className="max-w-7xl mx-auto space-y-8">
           
           
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white  border border-gray-100 shadow-sm">
             <div>
               <span className="text-xs font-bold text-secondary uppercase tracking-widest bg-secondary/10 px-3 py-1 rounded-full">
                 Employer Dashboard

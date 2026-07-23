@@ -80,9 +80,45 @@ const CreateEventPage = () => {
     { label: "Cities & Towns", value: 35 },
     { label: "Hall Tickets", value: 5000 }
   ]);
-  const [companies, setCompanies] = useState([{ companyName: "", companyLogo: null, companyLogoUrl: "", jobLocation: "", candidatesRequired: "", jobProfile: "", description: "" }]);
+  const initialCompany = {
+    companyName: "",
+    companyLogo: null,
+    companyLogoUrl: "",
+    existingLogo: "",
+    logoSourceMode: "upload",
+    logoLink: "",
+    jobProfile: [{ title: "", type: "" }],
+    qualification: "",
+    candidatesRequired: "",
+    minSalary: "",
+    maxSalary: "",
+    salaryType: "Per Month",
+    minExperience: "",
+    maxExperience: "",
+    experienceType: "Years",
+    description: "",
+    locations: [{ state: "", city: "", pincode: "" }],
+    jobExpiryDate: "",
+    hiringProcess: [],
+    positionOpenFor: [],
+    otherBenefit: "",
+    openForPhysicallyChallenged: "",
+    organisationName: "",
+    companyType: "",
+    contactPersonName: "",
+    designation: "",
+    mobileNumber: "",
+    email: "",
+    yourDetailsJobRole: "",
+    yourDetailsTotalOpenings: "",
+    yourDetailsState: "",
+    yourDetailsCity: "",
+    yourDetailsMinSalary: "",
+    yourDetailsMaxSalary: ""
+  };
+  const [companies, setCompanies] = useState([initialCompany]);
   
-  const addCompany = () => setCompanies((c) => [...c, { companyName: "", companyLogo: null, companyLogoUrl: "", jobLocation: "", candidatesRequired: "", jobProfile: "", description: "" }]);
+  const addCompany = () => setCompanies((c) => [...c, initialCompany]);
   const removeCompany = (i) => setCompanies((c) => c.filter((_, idx) => idx !== i));
   const updateCompany = (i, field, val) => setCompanies((c) => c.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
   
@@ -219,10 +255,36 @@ const CreateEventPage = () => {
             companyLogo: null,
             existingLogo: p.logo || "",
             companyLogoUrl: p.logo ? (p.logo.startsWith("http") ? p.logo : (p.logo.startsWith("companyLogo") || p.logo.startsWith("file-") ? `${SERVER_URL}/uploads/files/${p.logo}` : `${SERVER_URL}/uploads/logo/${p.logo}`)) : "",
-            jobLocation: p.location || "",
+            logoSourceMode: p.logoLink ? "link" : "upload",
+            logoLink: p.logoLink || "",
+            jobProfile: (p.jobProfile && typeof p.jobProfile === 'string' && p.jobProfile.startsWith('[')) ? JSON.parse(p.jobProfile) : [{ title: p.jobProfile || "", type: p.jobType || "" }],
+            qualification: p.qualification || "",
             candidatesRequired: p.candidatesRequired || "",
-            jobProfile: p.jobProfile || "",
+            minSalary: p.minSalary || "",
+            maxSalary: p.maxSalary || "",
+            salaryType: p.salaryType || "Per Month",
+            minExperience: p.minExperience || "",
+            maxExperience: p.maxExperience || "",
+            experienceType: p.experienceType || "Years",
             description: p.description || "",
+            locations: p.locations && p.locations.length > 0 ? p.locations : [{ state: p.jobLocationState || "", city: p.jobLocationCity || "", pincode: p.pincode || "" }],
+            jobExpiryDate: p.jobExpiryDate ? new Date(p.jobExpiryDate).toISOString().split("T")[0] : "",
+            hiringProcess: p.hiringProcess || [],
+            positionOpenFor: p.positionOpenFor || [],
+            otherBenefit: p.otherBenefit || "",
+            openForPhysicallyChallenged: p.openForPhysicallyChallenged || "",
+            organisationName: p.organisationName || "",
+            companyType: p.companyType || "",
+            contactPersonName: p.contactPersonName || "",
+            designation: p.designation || "",
+            mobileNumber: p.mobileNumber || "",
+            email: p.email || "",
+            yourDetailsJobRole: p.yourDetailsJobRole || "",
+            yourDetailsTotalOpenings: p.yourDetailsTotalOpenings || "",
+            yourDetailsState: p.yourDetailsState || "",
+            yourDetailsCity: p.yourDetailsCity || "",
+            yourDetailsMinSalary: p.yourDetailsMinSalary || "",
+            yourDetailsMaxSalary: p.yourDetailsMaxSalary || ""
           })));
         }
 
@@ -431,11 +493,35 @@ const CreateEventPage = () => {
       const partnersData = companies.map(c => ({
         companyName: c.companyName || "Unknown Company",
         logo: c.existingLogo || c.companyLogoUrl || "",
-        logoLink: c.companyLogoUrl || "",
-        jobProfile: c.jobProfile || "Unknown Profile",
-        location: c.jobLocation || "Remote",
+        logoLink: c.logoSourceMode === "link" ? c.logoLink : "",
+        jobProfile: JSON.stringify(c.jobProfile),
+        qualification: c.qualification,
         candidatesRequired: Number(c.candidatesRequired) || 0,
-        description: c.description
+        minSalary: c.minSalary,
+        maxSalary: c.maxSalary,
+        salaryType: c.salaryType,
+        minExperience: c.minExperience,
+        maxExperience: c.maxExperience,
+        experienceType: c.experienceType,
+        description: c.description,
+        locations: c.locations,
+        jobExpiryDate: c.jobExpiryDate,
+        hiringProcess: c.hiringProcess,
+        positionOpenFor: c.positionOpenFor,
+        otherBenefit: c.otherBenefit,
+        openForPhysicallyChallenged: c.openForPhysicallyChallenged,
+        organisationName: c.organisationName,
+        companyType: c.companyType,
+        contactPersonName: c.contactPersonName,
+        designation: c.designation,
+        mobileNumber: c.mobileNumber,
+        email: c.email,
+        yourDetailsJobRole: c.yourDetailsJobRole,
+        yourDetailsTotalOpenings: c.yourDetailsTotalOpenings,
+        yourDetailsState: c.yourDetailsState,
+        yourDetailsCity: c.yourDetailsCity,
+        yourDetailsMinSalary: c.yourDetailsMinSalary,
+        yourDetailsMaxSalary: c.yourDetailsMaxSalary
       }));
       fd.append("hiringPartners", JSON.stringify(partnersData));
       

@@ -3,6 +3,14 @@ import { Link } from "react-router-dom";
 import EventFairsCard from "../cards/EventFairsCard";
 
 const UpcomingEvents = ({ events = [] }) => {
+    const activeEvents = events.filter(event => {
+        if (!event.endDate) return true;
+        const endDate = new Date(event.endDate);
+        // Set end date to end of the day to ensure it includes the whole day
+        endDate.setHours(23, 59, 59, 999);
+        return endDate >= new Date();
+    });
+
     return (
         <>
             <div className="bg-gray-100">
@@ -19,8 +27,8 @@ const UpcomingEvents = ({ events = [] }) => {
                     </div>
 
                     <div className="flex overflow-x-auto gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 snap-x snap-mandatory hide-scrollbar">
-                        {events.length > 0 ? (
-                            events.map(event => (
+                        {activeEvents.length > 0 ? (
+                            activeEvents.map(event => (
                                 <div key={event._id} className="w-[340px] sm:w-[380px] md:w-auto shrink-0 snap-center md:snap-align-none">
                                     <EventFairsCard event={event} />
                                 </div>

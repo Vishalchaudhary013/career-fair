@@ -6,20 +6,42 @@ const CompanyCard = ({ jobCard }) => {
 
   
   const {
+    logoLink = "",
+    logo = "",
     companyLogo = "",
     companyName = "Company Name",
     jobProfile = "",
     candidatesRequired = "N/A",
-    jobLocation = "Location not specified",
+    location = "",
+    jobLocation = "",
   } = jobCard || {};
 
-  const companyLogoSrc = companyLogo
-    ? (companyLogo.startsWith("http") 
-        ? companyLogo 
-        : (companyLogo.startsWith("companyLogo") || companyLogo.startsWith("file-")
-           ? `${SERVER_URL}/uploads/files/${companyLogo}` 
-           : `${SERVER_URL}/uploads/logo/${companyLogo}`))
+  const displayLogo = logoLink || logo || companyLogo;
+  const companyLogoSrc = displayLogo
+    ? (displayLogo.startsWith("http") 
+        ? displayLogo 
+        : (displayLogo.startsWith("companyLogo") || displayLogo.startsWith("file-")
+           ? `${SERVER_URL}/uploads/files/${displayLogo}` 
+           : `${SERVER_URL}/uploads/logo/${displayLogo}`))
     : "";
+
+  const displayLocation = location || jobLocation || "Location not specified";
+
+  const formatJobProfile = (profile) => {
+    if (!profile) return "";
+    let str = Array.isArray(profile) ? profile[0] : profile;
+    if (typeof str !== 'string') return "";
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return parsed.map(p => p.title).filter(Boolean).join("\n");
+      }
+    } catch(e) {}
+    if (Array.isArray(profile)) return profile.join("\n");
+    return String(profile);
+  };
+  const displayJobProfile = formatJobProfile(jobProfile);
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
@@ -54,7 +76,7 @@ const CompanyCard = ({ jobCard }) => {
 
             <h2>{companyName}</h2>
             <p>
-              <strong>Job Location:</strong> {jobLocation}
+              <strong>Job Location:</strong> {displayLocation}
             </p>
             <p>
               <strong>Total Candidates Required:</strong> {candidatesRequired}
@@ -65,7 +87,7 @@ const CompanyCard = ({ jobCard }) => {
               <p className="jobProfileHeading">
                 <strong>Job Profile:</strong>
               </p>
-              {(jobProfile || "").split("\n").map((line, i) => (
+              {(displayJobProfile || "").split("\n").map((line, i) => (
                 <p className="jobProfile" key={i}>
                   {line}
                 </p>

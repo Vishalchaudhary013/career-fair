@@ -172,29 +172,36 @@ const LocationTab = ({
                 )}
               </div>
             </div>
-            <input type="text" placeholder="Address Line 1" value={street1} onChange={(e) => setStreet1(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
-            <input type="text" placeholder="Address Line 2" value={street2} onChange={(e) => setStreet2(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Address Line 1</label>
+              <input type="text" placeholder="Address Line 1" value={street1} onChange={(e) => setStreet1(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Address Line 2</label>
+              <input type="text" placeholder="Address Line 2" value={street2} onChange={(e) => setStreet2(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="relative">
-                <input type="text" placeholder="City" value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {suggestions.map((s) => (
-                      <div key={s.place_id} onClick={() => handleCitySelect(s)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
-                        {s.display_name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">City</label>
+                <div className="relative">
+                  <input type="text" placeholder="City" value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {suggestions.map((s) => (
+                        <div key={s.place_id} onClick={() => handleCitySelect(s)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                          {s.display_name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <input type="text" placeholder="Pin Code / Zip Code" value={pinCode || ""} onChange={(e) => setPinCode(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Pin Code / Zip Code</label>
+                <input type="text" placeholder="Pin Code / Zip Code" value={pinCode || ""} onChange={(e) => setPinCode(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <input type="text" placeholder="Nearest Bus Stop" value={nearestBusStop || ""} onChange={(e) => setNearestBusStop(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
-              <input type="text" placeholder="Nearest Airport" value={nearestAirport || ""} onChange={(e) => setNearestAirport(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
-              <input type="text" placeholder="Nearest Train Station" value={nearestTrainStation || ""} onChange={(e) => setNearestTrainStation(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
-            </div>
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-2 mb-5">
               <label className="block text-xs font-semibold text-gray-700">Location Link (Google Maps URL)</label>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input 
@@ -239,11 +246,27 @@ const LocationTab = ({
                 </label>
               )}
             </div>
-          </div>
-        </div>
-        <button onClick={resetLocation} className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer">
+            <button onClick={resetLocation} className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer">
           <RotateCcw size={13} /> Reset Location
         </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Bus Stop</label>
+                <input type="text" placeholder="Nearest Bus Stop" value={nearestBusStop || ""} onChange={(e) => setNearestBusStop(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Airport</label>
+                <input type="text" placeholder="Nearest Airport" value={nearestAirport || ""} onChange={(e) => setNearestAirport(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Train Station</label>
+                <input type="text" placeholder="Nearest Train Station" value={nearestTrainStation || ""} onChange={(e) => setNearestTrainStation(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
         <div>
           <h3 className="text-sm font-semibold text-primary mb-3">Location Map</h3>
           <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-100 w-full h-[280px]">

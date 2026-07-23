@@ -118,8 +118,12 @@ const SuperAdminDashboard = () => {
       setError("");
       
       if (activeSection === "Overview") {
-        const data = await getDashboardStats();
-        setStats(data);
+        const [statsData, usersData] = await Promise.all([
+          getDashboardStats(),
+          getAllUsers()
+        ]);
+        setStats(statsData);
+        setUsers(usersData);
       } else if (["Users", "Admins", "Employers"].includes(activeSection)) {
         const data = await getAllUsers();
         setUsers(data);
@@ -688,7 +692,7 @@ const SuperAdminDashboard = () => {
   return (
     <>
     <CreateEventHeader />
-    <div className="h-screen flex flex-col overflow-hidden bg-[#EEF3FF] pt-[60.5px]">
+    <div className="h-screen flex flex-col overflow-hidden pt-[60.5px]">
       <div className="flex-1 w-full  overflow-hidden">
         <div className="grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)]  h-full overflow-hidden">
           
@@ -764,22 +768,43 @@ const SuperAdminDashboard = () => {
               </div>
             ) : (
               <>
-                {activeSection === "Overview" && (
-                  <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3 px-1">
-                    <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
-                      <p className="text-xs text-slate-500 tracking-widest font-semibold">TOTAL USERS</p>
-                      <p className="text-3xl mt-1 font-bold text-slate-800">{stats.users}</p>
+                {activeSection === "Overview" && (() => {
+                  const totalAdmins = users.filter(u => u.role === "ADMIN" || u.role === "ORGANIZER").length;
+                  const totalEmployers = users.filter(u => u.role === "EMPLOYER").length;
+                  const totalSuperAdmins = users.filter(u => u.role === "SUPER_ADMIN").length;
+                  const totalRegularUsers = users.filter(u => u.role === "USER" || (!u.role || (u.role !== "ADMIN" && u.role !== "SUPER_ADMIN" && u.role !== "ORGANIZER" && u.role !== "EMPLOYER"))).length;
+
+                  return (
+                    <div className="grid gap-3 sm:gap- grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-2">
+                      <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL SUPERADMINS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{totalSuperAdmins}</p>
+                      </div>
+                       <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL ADMINS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{totalAdmins}</p>
+                      </div>
+                      
+                      <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL EMPLOYERS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{totalEmployers}</p>
+                      </div>
+                     <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL USERS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{totalRegularUsers}</p>
+                      </div>
+                      
+                      <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL FAIRS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{stats.events}</p>
+                      </div>
+                      <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
+                        <p className="text-xs text-slate-500 tracking-widest font-semibold uppercase">TOTAL BOOKINGS</p>
+                        <p className="text-3xl mt-1 font-bold text-slate-800">{stats.bookings}</p>
+                      </div>
                     </div>
-                    <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
-                      <p className="text-xs text-slate-500 tracking-widest font-semibold">TOTAL Fairs</p>
-                      <p className="text-3xl mt-1 font-bold text-slate-800">{stats.events}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
-                      <p className="text-xs text-slate-500 tracking-widest font-semibold">TOTAL BOOKINGS</p>
-                      <p className="text-3xl mt-1 font-bold text-slate-800">{stats.bookings}</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {activeSection === "Admins" && renderUserTableSection("Admins List", users.filter(u => u.role === "ADMIN" || u.role === "ORGANIZER"))}
                 {activeSection === "Employers" && renderSimpleUserTableSection("Employers List", users.filter(u => u.role === "EMPLOYER"))}

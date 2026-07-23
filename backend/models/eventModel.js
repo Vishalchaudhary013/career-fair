@@ -128,8 +128,8 @@ const statisticSchema = new mongoose.Schema({
 const hiringPartnerSchema = new mongoose.Schema({
   companyName: {
     type: String,
-    required: true,
     trim: true,
+    default: "",
   },
   logo: {
     type: String,
@@ -143,13 +143,13 @@ const hiringPartnerSchema = new mongoose.Schema({
   },
   jobProfile: {
     type: String,
-    required: true,
     trim: true,
+    default: "",
   },
   location: {
     type: String,
-    required: true,
     trim: true,
+    default: "",
   },
   candidatesRequired: {
     type: Number,
@@ -160,6 +160,41 @@ const hiringPartnerSchema = new mongoose.Schema({
     trim: true,
     default: "",
   },
+  jobType: { type: String, trim: true, default: "" },
+  qualification: { type: String, trim: true, default: "" },
+  minSalary: { type: Number },
+  maxSalary: { type: Number },
+  salaryType: { type: String, default: "Per Month", trim: true },
+  minExperience: { type: Number },
+  maxExperience: { type: Number },
+  experienceType: { type: String, default: "Years", trim: true },
+  jobLocationState: { type: String, trim: true, default: "" },
+  jobLocationCity: { type: String, trim: true, default: "" },
+  pincode: { type: String, trim: true, default: "" },
+  locations: [{
+    state: { type: String, trim: true },
+    city: { type: String, trim: true },
+    pincode: { type: String, trim: true }
+  }],
+  jobExpiryDate: { type: Date },
+  hiringProcess: [{ type: String }],
+  positionOpenFor: [{ type: String }],
+  otherBenefit: { type: String, trim: true, default: "" },
+  openForPhysicallyChallenged: { type: String, trim: true, default: "" },
+  organisationName: { type: String, trim: true, default: "" },
+  
+  // Your Details section
+  companyType: { type: String, trim: true, default: "" },
+  contactPersonName: { type: String, trim: true, default: "" },
+  designation: { type: String, trim: true, default: "" },
+  mobileNumber: { type: String, trim: true, default: "" },
+  email: { type: String, trim: true, default: "" },
+  yourDetailsJobRole: { type: String, trim: true, default: "" },
+  yourDetailsTotalOpenings: { type: Number },
+  yourDetailsState: { type: String, trim: true, default: "" },
+  yourDetailsCity: { type: String, trim: true, default: "" },
+  yourDetailsMinSalary: { type: Number },
+  yourDetailsMaxSalary: { type: Number },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

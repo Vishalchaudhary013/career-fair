@@ -88,7 +88,15 @@ export const deleteFair = async (req, res) => {
 export const joinAsPartner = async (req, res) => {
   try {
     const { id } = req.params;
-    const { companyName, jobProfile, location, candidatesRequired, description, logoLink } = req.body;
+    const {
+      companyName, jobProfile, location, candidatesRequired, description, logoLink,
+      jobType, qualification, minSalary, maxSalary, minExperience, maxExperience,
+      jobLocationState, jobLocationCity, pincode, jobExpiryDate, hiringProcess,
+      positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
+      companyType, contactPersonName, designation, mobileNumber, email,
+      yourDetailsJobRole, yourDetailsTotalOpenings, yourDetailsState, yourDetailsCity,
+      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType
+    } = req.body;
 
     const event = await Event.findById(id);
     if (!event) {
@@ -105,6 +113,14 @@ export const joinAsPartner = async (req, res) => {
       description: description || "",
       logo: companyLogo,
       logoLink: logoLink || "",
+      jobType, qualification, minSalary, maxSalary, minExperience, maxExperience,
+      jobLocationState, jobLocationCity, pincode, jobExpiryDate, hiringProcess,
+      positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
+      companyType, contactPersonName, designation, mobileNumber, email,
+      yourDetailsJobRole, yourDetailsTotalOpenings, yourDetailsState, yourDetailsCity,
+      yourDetailsMinSalary, yourDetailsMaxSalary,
+      salaryType, experienceType,
+      locations: locations ? (typeof locations === 'string' ? JSON.parse(locations) : locations) : [],
       postedBy: req.user._id,
       postedByEmail: req.user.email,
     };
@@ -172,7 +188,15 @@ export const getEmployerDashboard = async (req, res) => {
 export const updateEmployerJob = async (req, res) => {
   try {
     const { id, jobId } = req.params;
-    const { companyName, jobProfile, location, candidatesRequired, description, logoLink } = req.body;
+    const {
+      companyName, jobProfile, location, candidatesRequired, description, logoLink,
+      jobType, qualification, minSalary, maxSalary, minExperience, maxExperience,
+      jobLocationState, jobLocationCity, pincode, jobExpiryDate, hiringProcess,
+      positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
+      companyType, contactPersonName, designation, mobileNumber, email,
+      yourDetailsJobRole, yourDetailsTotalOpenings, yourDetailsState, yourDetailsCity,
+      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType
+    } = req.body;
     const userId = req.user._id;
 
     const event = await Event.findById(id);
@@ -189,12 +213,43 @@ export const updateEmployerJob = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized to edit this job posting" });
     }
 
-    if (companyName) partner.companyName = companyName;
-    if (jobProfile) partner.jobProfile = jobProfile;
-    if (location) partner.location = location;
+    if (companyName !== undefined) partner.companyName = companyName;
+    if (jobProfile !== undefined) partner.jobProfile = jobProfile;
+    if (location !== undefined) partner.location = location;
     if (candidatesRequired !== undefined) partner.candidatesRequired = parseInt(candidatesRequired, 10) || 0;
     if (description !== undefined) partner.description = description;
     if (logoLink !== undefined) partner.logoLink = logoLink;
+    if (jobType !== undefined) partner.jobType = jobType;
+    if (qualification !== undefined) partner.qualification = qualification;
+    if (minSalary !== undefined) partner.minSalary = minSalary;
+    if (maxSalary !== undefined) partner.maxSalary = maxSalary;
+    if (minExperience !== undefined) partner.minExperience = minExperience;
+    if (maxExperience !== undefined) partner.maxExperience = maxExperience;
+    if (jobLocationState !== undefined) partner.jobLocationState = jobLocationState;
+    if (jobLocationCity !== undefined) partner.jobLocationCity = jobLocationCity;
+    if (pincode !== undefined) partner.pincode = pincode;
+    if (jobExpiryDate !== undefined) partner.jobExpiryDate = jobExpiryDate;
+    if (hiringProcess !== undefined) partner.hiringProcess = hiringProcess;
+    if (positionOpenFor !== undefined) partner.positionOpenFor = positionOpenFor;
+    if (otherBenefit !== undefined) partner.otherBenefit = otherBenefit;
+    if (openForPhysicallyChallenged !== undefined) partner.openForPhysicallyChallenged = openForPhysicallyChallenged;
+    if (organisationName !== undefined) partner.organisationName = organisationName;
+    if (companyType !== undefined) partner.companyType = companyType;
+    if (contactPersonName !== undefined) partner.contactPersonName = contactPersonName;
+    if (designation !== undefined) partner.designation = designation;
+    if (mobileNumber !== undefined) partner.mobileNumber = mobileNumber;
+    if (email !== undefined) partner.email = email;
+    if (yourDetailsJobRole !== undefined) partner.yourDetailsJobRole = yourDetailsJobRole;
+    if (yourDetailsTotalOpenings !== undefined) partner.yourDetailsTotalOpenings = yourDetailsTotalOpenings;
+    if (yourDetailsState !== undefined) partner.yourDetailsState = yourDetailsState;
+    if (yourDetailsCity !== undefined) partner.yourDetailsCity = yourDetailsCity;
+    if (yourDetailsMinSalary !== undefined) partner.yourDetailsMinSalary = yourDetailsMinSalary;
+    if (yourDetailsMaxSalary !== undefined) partner.yourDetailsMaxSalary = yourDetailsMaxSalary;
+    if (salaryType !== undefined) partner.salaryType = salaryType;
+    if (experienceType !== undefined) partner.experienceType = experienceType;
+    if (locations !== undefined) {
+      partner.locations = typeof locations === 'string' ? JSON.parse(locations) : locations;
+    }
 
     if (req.files?.companyLogo?.[0]) {
       partner.logo = req.files.companyLogo[0].filename;

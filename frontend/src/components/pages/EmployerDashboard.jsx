@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import CreateEventHeader from "../create-event/CreateEventHeader";
 import {
@@ -27,10 +27,39 @@ import {
   FiChevronRight,
   FiLogOut
 } from "react-icons/fi";
-import { FaBuilding } from "react-icons/fa";
+import { FaBuilding, FaDownload, FaLinkedin, FaFacebook, FaTwitter, FaInstagram, FaGlobe, FaArrowRight, FaClock, FaCheckCircle, FaUsers, FaMapMarkerAlt, FaFileAlt, FaBriefcase, FaEnvelope, FaPhoneAlt } from 'react-icons/fa';
+import { SERVER_URL } from "../../config";
+import api from "../services/api";
+import Select from "react-select";
+import { State, City } from "country-state-city";
+
+const INDIA_ISO_CODE = 'IN';
+const INDIA_STATES = State.getStatesOfCountry(INDIA_ISO_CODE).map(s => ({ value: s.name, label: s.name, isoCode: s.isoCode }));
+
+const formatJobProfileDisplay = (profile) => {
+  if (!profile) return "";
+  let str = Array.isArray(profile) ? profile[0] : profile;
+  if (typeof str !== 'string') return "";
+  try {
+    const parsed = JSON.parse(str);
+    if (Array.isArray(parsed)) {
+      return parsed.map(p => p.title).filter(Boolean).join(", ");
+    }
+  } catch(e) {}
+  if (Array.isArray(profile)) return profile.join(", ");
+  return String(profile);
+};
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openPostJobFor) {
+      openPostJobModal(location.state.openPostJobFor);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   const { user, logout } = useAuth();
 
   const isImpersonating = !!localStorage.getItem("super_admin_token");
@@ -57,21 +86,20 @@ const EmployerDashboard = () => {
   const [currentFair, setCurrentFair] = useState(null);
   const [currentJobId, setCurrentJobId] = useState("");
 
-
   const [logoSourceMode, setLogoSourceMode] = useState("upload");
   const [formData, setFormData] = useState({
-    companyName: "",
-    jobProfile: "",
-    location: "",
-    candidatesRequired: "",
-    description: "",
-    logoLink: ""
+    companyName: "", jobProfile: [{ title: "", type: "" }], location: "", candidatesRequired: "", description: "", logoLink: "",
+    jobType: "", qualification: "", minSalary: "", maxSalary: "", salaryType: "Per Month", minExperience: "", maxExperience: "", experienceType: "Years",
+    locations: [{ state: "", city: "", pincode: "" }], jobExpiryDate: "", hiringProcess: [],
+    positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
+    companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
+    yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
+    yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
   });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
 
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -102,14 +130,12 @@ const EmployerDashboard = () => {
     fetchDashboardData();
   }, [user, navigate]);
 
-
   const triggerSuccessNotification = (msg) => {
     setSuccessMsg(msg);
     setTimeout(() => {
       setSuccessMsg("");
     }, 5000);
   };
-
 
   const handleInputChange = (e) => {
     setFormData({
@@ -140,12 +166,26 @@ const EmployerDashboard = () => {
       setModalMode("edit");
       setCurrentJobId(job._id);
       setFormData({
-        companyName: job.companyName || "",
-        jobProfile: job.jobProfile || "",
-        location: job.location || "",
-        candidatesRequired: job.candidatesRequired || "",
-        description: job.description || "",
-        logoLink: job.logoLink || ""
+        companyName: job.companyName || "", jobProfile: (() => {
+          if (!job.jobProfile) return [{ title: "", type: "" }];
+          try {
+            const parsed = JSON.parse(job.jobProfile);
+            return Array.isArray(parsed) ? parsed : [{ title: job.jobProfile, type: job.jobType || "" }];
+          } catch(e) {
+            return job.jobProfile.split(",").map(s => ({ title: s.trim(), type: job.jobType || "" }));
+          }
+        })(), location: job.location || "",
+        candidatesRequired: job.candidatesRequired || "", description: job.description || "", logoLink: job.logoLink || "",
+        jobType: job.jobType || "", qualification: job.qualification || "", minSalary: job.minSalary || "", salaryType: job.salaryType || "Per Month",
+        maxSalary: job.maxSalary || "", minExperience: job.minExperience || "", maxExperience: job.maxExperience || "", experienceType: job.experienceType || "Years",
+        locations: job.locations && job.locations.length > 0 ? job.locations : [{ state: "", city: "", pincode: "" }],
+        jobExpiryDate: job.jobExpiryDate ? job.jobExpiryDate.split('T')[0] : "", hiringProcess: job.hiringProcess || [],
+        positionOpenFor: job.positionOpenFor || [], otherBenefit: job.otherBenefit || "",
+        openForPhysicallyChallenged: job.openForPhysicallyChallenged || "", organisationName: job.organisationName || "",
+        companyType: job.companyType || "", contactPersonName: job.contactPersonName || "", designation: job.designation || "",
+        mobileNumber: job.mobileNumber || "", email: job.email || "", yourDetailsJobRole: job.yourDetailsJobRole || "",
+        yourDetailsTotalOpenings: job.yourDetailsTotalOpenings || "", yourDetailsState: job.yourDetailsState || "",
+        yourDetailsCity: job.yourDetailsCity || "", yourDetailsMinSalary: job.yourDetailsMinSalary || "", yourDetailsMaxSalary: job.yourDetailsMaxSalary || ""
       });
       if (job.logo) {
         setLogoSourceMode("upload");
@@ -162,32 +202,34 @@ const EmployerDashboard = () => {
       setModalMode("create");
       setCurrentJobId("");
       setFormData({
-        companyName: "",
-        jobProfile: "",
-        location: "",
-        candidatesRequired: "",
-        description: "",
-        logoLink: ""
+        companyName: "", jobProfile: [{ title: "", type: "" }], location: "", candidatesRequired: "", description: "", logoLink: "",
+        jobType: "", qualification: "", minSalary: "", maxSalary: "", salaryType: "Per Month", minExperience: "", maxExperience: "", experienceType: "Years",
+        locations: [{ state: "", city: "", pincode: "" }], jobExpiryDate: "", hiringProcess: [],
+        positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
+        companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
+        yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
+        yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
       });
       setLogoSourceMode("upload");
       setLogoPreview("");
       setLogoFile(null);
     }
 
-    setIsModalOpen(true);
+    setActiveSection("PostJob");
   };
 
   const closeJobModal = () => {
-    setIsModalOpen(false);
+    setActiveSection("MyFairs");
     setCurrentFair(null);
     setCurrentJobId("");
     setFormData({
-      companyName: "",
-      jobProfile: "",
-      location: "",
-      candidatesRequired: "",
-      description: "",
-      logoLink: ""
+      companyName: "", jobProfile: [{ title: "", type: "" }], location: "", candidatesRequired: "", description: "", logoLink: "",
+      jobType: "", qualification: "", minSalary: "", maxSalary: "", salaryType: "Per Month", minExperience: "", maxExperience: "", experienceType: "Years",
+      locations: [{ state: "", city: "", pincode: "" }], jobExpiryDate: "", hiringProcess: [],
+      positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
+      companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
+      yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
+      yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
     });
     setLogoFile(null);
     setLogoPreview("");
@@ -200,18 +242,20 @@ const EmployerDashboard = () => {
     setSubmitting(true);
 
     const { companyName, jobProfile, location, candidatesRequired } = formData;
-    if (!companyName || !jobProfile || !location || !candidatesRequired) {
-      setFormError("Please fill in all required fields.");
-      setSubmitting(false);
-      return;
-    }
 
     const uploadData = new FormData();
-    uploadData.append("companyName", companyName);
-    uploadData.append("jobProfile", jobProfile);
-    uploadData.append("location", location);
-    uploadData.append("candidatesRequired", candidatesRequired);
-    uploadData.append("description", formData.description || "");
+    Object.keys(formData).forEach(key => {
+      if (key === 'hiringProcess' || key === 'positionOpenFor') {
+        formData[key].forEach(val => uploadData.append(key, val));
+      } else if (key === 'jobProfile') {
+        uploadData.append(key, JSON.stringify(formData[key].filter(v => v.title)));
+      } else if (key === 'locations') {
+        uploadData.append(key, JSON.stringify(formData[key].filter(l => l.state || l.city || l.pincode)));
+      } else if (key !== 'logoLink') {
+        uploadData.append(key, formData[key] || "");
+      }
+    });
+
     uploadData.append("logoLink", logoSourceMode === "link" ? formData.logoLink : "");
     if (logoSourceMode === "upload" && logoFile) {
       uploadData.append("companyLogo", logoFile);
@@ -254,11 +298,9 @@ const EmployerDashboard = () => {
     navigate("/login");
   };
 
-
   const isEmployerInFair = (fairId) => {
     return myFairs.some(f => f._id.toString() === fairId.toString());
   };
-
 
   const filteredFairs = allFairs.filter(event => {
     const nameMatch = event.fairName?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -269,7 +311,7 @@ const EmployerDashboard = () => {
   const menuItems = [
     { key: "Overview", label: "Overview", icon: <FiBriefcase size={16} /> },
     { key: "MyFairs", label: "Participating Fairs", icon: <FiCalendar size={16} /> },
-    { key: "Browse", label: "Browse Career Fairs", icon: <FiSearch size={16} /> }
+    // { key: "Browse", label: "Browse Career Fairs", icon: <FiSearch size={16} /> }
   ];
 
   if (loading && allFairs.length === 0) {
@@ -284,10 +326,9 @@ const EmployerDashboard = () => {
   return (
     <>
       <CreateEventHeader />
-      <div className="h-screen flex flex-col overflow-hidden bg-[#EEF3FF] pt-[60.5px]">
+      <div className="h-screen flex flex-col overflow-hidden pt-[60.5px]">
         <div className="flex-1 w-full overflow-hidden">
           <div className="grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] h-full overflow-hidden">
-
 
             <aside className="bg-[#E4EBFB] p-5 border border-[#D8E2F7] xl:sticky xl:top-6 flex flex-col overflow-hidden">
               <div className="mb-7">
@@ -317,7 +358,6 @@ const EmployerDashboard = () => {
                     if (myFairs.length > 0) {
                       openPostJobModal(myFairs[0]);
                     } else {
-                      setActiveSection("Browse");
                       triggerSuccessNotification("Please select a fair to join first.");
                     }
                   }}
@@ -340,7 +380,7 @@ const EmployerDashboard = () => {
               </div>
             </aside>
 
-            <main className="min-w-0 flex flex-col h-full overflow-hidden space-y-4 sm:space-y-5 px-6">
+            <main className="min-w-0 flex flex-col h-full overflow-hidden space-y-4 sm:space-y-5 ">
 
               {isImpersonating && (
                 <div className="flex justify-end mt-4">
@@ -354,36 +394,35 @@ const EmployerDashboard = () => {
                 </div>
               )}
 
-              <div className="bg-white border border-[#DCE5FA] px-6 py-4 flex items-center justify-between shadow-sm mt-4 rounded-xl">
-                <div>
-                  <h1 className="text-xl font-bold text-primary">
-                    {activeSection === "Overview" && "Campaign Overview"}
-                    {activeSection === "MyFairs" && "Participating Fairs"}
-                    {activeSection === "Browse" && "Explore "}
-                  </h1>
-                  <p className="text-[10px] tracking-[0.1em] text-slate-400 font-bold uppercase">
-                    Recruiting Command Center
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3 rounded-xl bg-[#F5F8FF] border border-[#DEE8FF] px-3 py-1.5">
-                    <div className="w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm">
-                      {(user?.userName || user?.email || "E").charAt(0).toUpperCase()}
-                    </div>
-                    <div className="hidden sm:block text-left">
-                      <p className="text-xs font-bold text-slate-800 leading-tight">
-                        {user?.userName || user?.email || "Employer"}
-                      </p>
-                      <p className="text-[10px] text-slate-500 uppercase font-semibold">
-                        Hiring Partner
-                      </p>
+              {activeSection === "Overview" && (
+                <div className="bg-white border border-[#DCE5FA] px-6 py-4 flex items-center justify-between shadow">
+                  <div>
+                    <h1 className="text-xl font-bold text-primary">
+                      Campaign Overview
+                    </h1>
+                    <p className="text-[10px] tracking-[0.1em] text-slate-400 font-bold uppercase">
+                      Recruiting Command Center
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 rounded-xl bg-[#F5F8FF] border border-[#DEE8FF] px-3 py-1.5">
+                      <div className="w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                        {(user?.userName || user?.email || "E").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="hidden sm:block text-left">
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {user?.userName || user?.email || "Employer"}
+                        </p>
+                        <p className="text-[10px] text-slate-500 uppercase font-semibold">
+                          Hiring Partner
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-
-              <div className="flex-grow min-h-0 overflow-y-auto hide-scrollbar pb-10">
+              <div className="flex-grow min-h-0 overflow-y-auto hide-scrollbar ">
                 {successMsg && (
                   <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800 font-medium text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-3 duration-300">
                     <FiCheckCircle size={18} className="text-emerald-500 flex-shrink-0" />
@@ -391,28 +430,11 @@ const EmployerDashboard = () => {
                   </div>
                 )}
 
-
                 {activeSection === "Overview" && (
                   <div className="space-y-6">
 
-                    {/* <div className="bg-gradient-to-r from-primary to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
-                      <div className="absolute right-0 bottom-0 top-0 w-1/3 opacity-15 hidden md:block bg-[radial-gradient(circle_at_bottom_right,white,transparent_70%)] pointer-events-none" />
-                      <div className="relative z-10">
-                        <span className="bg-white/20 text-white font-semibold text-xs uppercase px-3.5 py-1.5 rounded-full tracking-wider">
-                          Employer Dashboard
-                        </span>
-                        <h1 className="text-2xl sm:text-3xl font-extrabold mt-4 mb-2 tracking-tight">
-                          Manage Your Campaigns
-                        </h1>
-                        <p className="text-white/80 max-w-xl text-xs sm:text-sm leading-relaxed">
-                          Setup career campaigns, list candidate profiles, and request openings at active expos.
-                        </p>
-                      </div>
-                    </div> */}
-
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-1">
+                      <div className="bg-white border border-slate-100 rounded-xl p-6 shadow flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
                         <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <FiCalendar size={28} />
                         </div>
@@ -422,7 +444,7 @@ const EmployerDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
+                      <div className="bg-white border border-slate-100 rounded-xl p-6 shadow flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
                         <div className="h-14 w-14 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600">
                           <FiBriefcase size={28} />
                         </div>
@@ -432,7 +454,7 @@ const EmployerDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
+                      <div className="bg-white border border-slate-100 rounded-xl p-6 shadow flex items-center gap-5 hover:translate-y-[-2px] hover:shadow-md transition-all duration-300">
                         <div className="h-14 w-14 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                           <FiUsers size={28} />
                         </div>
@@ -443,8 +465,7 @@ const EmployerDashboard = () => {
                       </div>
                     </div>
 
-
-                    <div className="grid grid-cols-1 gap-6">
+                    {/* <div className="grid grid-cols-1 gap-6">
                       <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
                           <div className="flex items-center justify-between mb-6">
@@ -499,38 +520,9 @@ const EmployerDashboard = () => {
                         </div>
                       </div>
 
-                      {/* <div className="space-y-6">
-                        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Quick Actions</h3>
-                          <div className="space-y-3">
-                            <button 
-                              onClick={() => setActiveSection("Browse")}
-                              className="w-full flex items-center justify-between p-3.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl text-left transition text-slate-700 font-bold text-xs"
-                            >
-                              <span>Find Expos</span>
-                              <FiArrowRight size={14} />
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if (myFairs.length > 0) {
-                                  openPostJobModal(myFairs[0]);
-                                } else {
-                                  setActiveSection("Browse");
-                                  triggerSuccessNotification("Please select a fair to join first.");
-                                }
-                              }}
-                              className="w-full flex items-center justify-between p-3.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl text-left transition text-slate-700 font-bold text-xs"
-                            >
-                              <span>Post Job Profile</span>
-                              <FiPlus size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div> */}
-                    </div>
+                    </div> */}
                   </div>
                 )}
-
 
                 {activeSection === "MyFairs" && (
                   <div className="space-y-8">
@@ -551,7 +543,7 @@ const EmployerDashboard = () => {
                     ) : (
                       <div className="space-y-8">
                         {myFairs.map(event => (
-                          <div key={event._id} className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                          <div key={event._id} className="bg-white border border-slate-100   overflow-hidden">
 
                             <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                               <div>
@@ -577,7 +569,6 @@ const EmployerDashboard = () => {
                               </div>
                             </div>
 
-
                             <div className="p-6">
                               {event.myPostings && event.myPostings.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -598,7 +589,7 @@ const EmployerDashboard = () => {
                                               </div>
                                             )}
                                             <div>
-                                              <h5 className="font-extrabold text-slate-900 text-xs leading-snug">{job.jobProfile}</h5>
+                                              <h5 className="font-extrabold text-slate-900 text-xs leading-snug">{formatJobProfileDisplay(job.jobProfile)}</h5>
                                               <p className="text-[10px] font-semibold text-slate-500">{job.companyName}</p>
                                             </div>
                                           </div>
@@ -609,8 +600,12 @@ const EmployerDashboard = () => {
 
                                         <div className="space-y-1.5 mb-4 text-xs">
                                           <div className="flex items-center gap-1 text-slate-500">
-                                            <FiMapPin size={12} />
-                                            <span>Location: <strong className="text-slate-700 font-medium">{job.location}</strong></span>
+                                            <FiMapPin size={12} className="shrink-0" />
+                                            <span className="line-clamp-1">Location: <strong className="text-slate-700 font-medium">
+                                              {job.locations?.length > 0 
+                                                ? job.locations.map(loc => [loc.city, loc.state].filter(Boolean).join(", ")).filter(Boolean).join(" | ") 
+                                                : (job.location || "Not specified")}
+                                            </strong></span>
                                           </div>
                                           {job.description && (
                                             <p className="text-slate-600 line-clamp-2 mt-2 leading-relaxed">
@@ -652,15 +647,13 @@ const EmployerDashboard = () => {
                   </div>
                 )}
 
-
-                {activeSection === "Browse" ? (
+                {/* {activeSection === "Browse" ? (
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <h2 className="text-lg font-bold text-slate-800">Browse Career Fairs</h2>
                         <p className="text-xs text-slate-500 mt-0.5">Explore active fairs and join as a hiring partner</p>
                       </div>
-
 
                       <div className="relative w-full sm:w-80">
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -761,12 +754,6 @@ const EmployerDashboard = () => {
                                   </div>
                                 </div>
 
-                                {/* {cleanDesc && (
-                                  <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed mb-4 text-left">
-                                    {cleanDesc}
-                                  </p>
-                                )} */}
-
                                 <div className="flex items-center justify-between gap-4 mt-auto pt-4 border-t border-slate-100 w-full">
                                   <Link
                                     to={`/event/${event._id}`}
@@ -791,21 +778,13 @@ const EmployerDashboard = () => {
                       </div>
                     )}
                   </div>
-                ) : null}
+                ) : null} */}
 
-              </div>
-            </main>
+{activeSection === "PostJob" && (
+        <div className="bg-white border border-slate-100  shadow-sm overflow-hidden flex flex-col">
+          <div className="w-full flex flex-col">
 
-          </div>
-        </div>
-      </div>
-
-
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-
-            <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+            <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-xs">
                   {modalMode === "create" ? "Add Company Job Profile" : "Edit Job Profile"}
@@ -822,8 +801,7 @@ const EmployerDashboard = () => {
               </button>
             </div>
 
-
-            <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleFormSubmit} className="p-6 space-y-6">
 
               {formError && (
                 <div className="p-3 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl">
@@ -831,175 +809,644 @@ const EmployerDashboard = () => {
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">Company Logo</label>
-                <div className="flex gap-2 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLogoSourceMode("upload");
-                      setLogoPreview(logoFile ? URL.createObjectURL(logoFile) : "");
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${logoSourceMode === "upload"
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                  >
-                    Upload File
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLogoSourceMode("link");
-                      setLogoPreview(formData.logoLink || "");
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${logoSourceMode === "link"
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                  >
-                    Image Link
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  {logoPreview ? (
-                    <div className="relative w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-contain" />
+              <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">Company Logo</label>
+                    <div className="flex gap-2 mb-3">
                       <button
                         type="button"
                         onClick={() => {
-                          if (logoSourceMode === "upload") {
-                            setLogoFile(null);
-                          } else {
-                            setFormData({ ...formData, logoLink: "" });
-                          }
-                          setLogoPreview("");
+                          setLogoSourceMode("upload");
+                          setLogoPreview(logoFile ? URL.createObjectURL(logoFile) : "");
                         }}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600 transition"
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition ${logoSourceMode === "upload"
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
                       >
-                        <FiX size={10} />
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLogoSourceMode("link");
+                          setLogoPreview(formData.logoLink || "");
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition ${logoSourceMode === "link"
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                      >
+                        Image Link
                       </button>
                     </div>
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
-                      <FaBuilding size={24} />
-                    </div>
-                  )}
 
-                  {logoSourceMode === "upload" ? (
-                    <label className="flex-grow flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/50 cursor-pointer hover:bg-slate-50 hover:border-primary/45 transition">
-                      <div className="flex flex-col items-center text-center">
-                        <FiUpload size={16} className="text-slate-400 mb-1" />
-                        <span className="text-[10px] font-bold text-primary">Upload logo</span>
-                        <span className="text-[8px] text-slate-400 mt-0.5">PNG, JPG, WEBP up to 5MB</span>
+                    <div className="flex items-center gap-4">
+                      {logoPreview ? (
+                        <div className="relative w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (logoSourceMode === "upload") {
+                                setLogoFile(null);
+                              } else {
+                                setFormData({ ...formData, logoLink: "" });
+                              }
+                              setLogoPreview("");
+                            }}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600 transition"
+                          >
+                            <FiX size={10} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                          <FaBuilding size={24} />
+                        </div>
+                      )}
+
+                      {logoSourceMode === "upload" ? (
+                        <label className="flex-grow flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/50 cursor-pointer hover:bg-slate-50 hover:border-primary/45 transition h-16">
+                          <div className="flex flex-col items-center text-center">
+                            <FiUpload size={14} className="text-slate-400 mb-1" />
+                            <span className="text-[9px] font-bold text-primary">Upload logo</span>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                      ) : (
+                        <div className="flex-grow">
+                          <input
+                            type="url"
+                            name="logoLink"
+                            value={formData.logoLink}
+                            onChange={(e) => {
+                              handleInputChange(e);
+                              setLogoPreview(e.target.value);
+                            }}
+                            placeholder="Image URL..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-4">
+                  <h4 className="text-sm font-bold text-slate-800 mb-4">Job Details</h4>
+                  
+                  <div className="mb-4">
+                      {formData.jobProfile.map((job, index) => (
+                        <div key={index} className="flex flex-col sm:flex-row gap-4 mb-4 items-end">
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Title </label>
+                            <input
+                              type="text"
+                              placeholder="Job Title"
+                              value={job.title}
+                              onChange={(e) => {
+                                const newProfiles = [...formData.jobProfile];
+                                newProfiles[index].title = e.target.value;
+                                setFormData({ ...formData, jobProfile: newProfiles });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Type</label>
+                            <select
+                              value={job.type}
+                              onChange={(e) => {
+                                const newProfiles = [...formData.jobProfile];
+                                newProfiles[index].type = e.target.value;
+                                setFormData({ ...formData, jobProfile: newProfiles });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">--Select Type--</option>
+                                <option value="Full Time">Full Time</option>
+                                <option value="Part Time">Part Time</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Contract">Contract</option>
+                            </select>
+                          </div>
+                          {index > 0 && (
+                            <button type="button" onClick={() => {
+                              const newProfiles = formData.jobProfile.filter((_, i) => i !== index);
+                              setFormData({ ...formData, jobProfile: newProfiles });
+                            }} className="text-red-500 hover:text-red-700 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg shrink-0">
+                              <FiX size={16} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setFormData({ ...formData, jobProfile: [...formData.jobProfile, { title: "", type: "" }] })} className="text-xs text-primary font-bold hover:underline">+ Add Job Title</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Qualification</label>
+                        <input
+                          type="text"
+                          name="qualification"
+                          value={formData.qualification}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                  ) : (
-                    <div className="flex-grow">
-                      <input
-                        type="url"
-                        name="logoLink"
-                        value={formData.logoLink}
-                        onChange={(e) => {
-                          handleInputChange(e);
-                          setLogoPreview(e.target.value);
-                        }}
-                        placeholder="Paste logo image URL link (e.g. https://example.com/logo.png)"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white"
-                      />
-                    </div>
-                  )}
-                </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">No. of Position(s)</label>
+                        <input
+                          type="number"
+                          name="candidatesRequired"
+                          value={formData.candidatesRequired}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Salary Range</label>
+                        <div className="flex gap-2">
+                            <input
+                              type="number"
+                              name="minSalary"
+                              value={formData.minSalary}
+                              onChange={handleInputChange}
+                              placeholder="Min Sal"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <input
+                              type="number"
+                              name="maxSalary"
+                              value={formData.maxSalary}
+                              onChange={handleInputChange}
+                              placeholder="Max Sal"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <select
+                              name="salaryType"
+                              value={formData.salaryType}
+                              onChange={handleInputChange}
+                              className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
+                            >
+                                <option value="Per Month">Per Month</option>
+                                <option value="Per Year">Per Year</option>
+                            </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Experience Required</label>
+                        <div className="flex gap-2">
+                            <select
+                              name="minExperience"
+                              value={formData.minExperience}
+                              onChange={handleInputChange}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">-Min Exp-</option>
+                                {[...Array(15)].map((_, i) => <option key={i} value={i}>{i}</option>)}
+                            </select>
+                            <select
+                              name="maxExperience"
+                              value={formData.maxExperience}
+                              onChange={handleInputChange}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            >
+                                <option value="">-Max Exp-</option>
+                                {[...Array(20)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                            </select>
+                            <select
+                              name="experienceType"
+                              value={formData.experienceType}
+                              onChange={handleInputChange}
+                              className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
+                            >
+                                <option value="Months">Months</option>
+                                <option value="Years">Years</option>
+                            </select>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold text-slate-600 mb-1">Job Description</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="Job Description and Profile Description (Minimum 100 to Maximum 500 characters)"
+                      rows="3"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white resize-none"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    {formData.locations.map((loc, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-4 mb-4 items-end">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location State</label>
+                          <Select
+                            options={INDIA_STATES}
+                            value={INDIA_STATES.find(s => s.value === loc.state) || null}
+                            onChange={(selected) => {
+                              const newLocs = [...formData.locations];
+                              newLocs[index].state = selected ? selected.value : "";
+                              newLocs[index].city = ""; 
+                              setFormData({ ...formData, locations: newLocs });
+                            }}
+                            placeholder="Search State..."
+                            isClearable
+                            isSearchable
+                            styles={{
+                              control: (base, state) => ({
+                                ...base,
+                                backgroundColor: '#f8fafc',
+                                borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                                boxShadow: 'none',
+                                '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                                borderRadius: '0.5rem',
+                                minHeight: '34px',
+                                fontSize: '12px'
+                              }),
+                              menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location City</label>
+                          <Select
+                            options={(() => {
+                              if (!loc.state) return [];
+                              const stateObj = INDIA_STATES.find(s => s.value === loc.state);
+                              if (!stateObj) return [];
+                              const cities = City.getCitiesOfState(INDIA_ISO_CODE, stateObj.isoCode);
+                              const uniqueCities = [...new Set(cities.map(c => c.name))];
+                              return uniqueCities.map(c => ({ value: c, label: c }));
+                            })()}
+                            value={loc.city ? { value: loc.city, label: loc.city } : null}
+                            onChange={(selected) => {
+                              const newLocs = [...formData.locations];
+                              newLocs[index].city = selected ? selected.value : "";
+                              setFormData({ ...formData, locations: newLocs });
+                            }}
+                            placeholder={loc.state ? "Search City..." : "Select State first"}
+                            isDisabled={!loc.state}
+                            isClearable
+                            isSearchable
+                            styles={{
+                              control: (base, state) => ({
+                                ...base,
+                                backgroundColor: '#f8fafc',
+                                borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                                boxShadow: 'none',
+                                '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                                borderRadius: '0.5rem',
+                                minHeight: '34px',
+                                fontSize: '12px'
+                              }),
+                              menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">Pincode</label>
+                          <input
+                            type="text"
+                            placeholder="Pincode"
+                            value={loc.pincode}
+                            onChange={(e) => {
+                              const newLocs = [...formData.locations];
+                              newLocs[index].pincode = e.target.value;
+                              setFormData({ ...formData, locations: newLocs });
+                            }}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                          />
+                        </div>
+                        {index > 0 ? (
+                          <button type="button" onClick={() => {
+                            const newLocs = formData.locations.filter((_, i) => i !== index);
+                            setFormData({ ...formData, locations: newLocs });
+                          }} className="text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded-lg bg-red-50 flex items-center justify-center h-[34px]">
+                            <FiTrash2 size={16} />
+                          </button>
+                        ) : <div className="w-9 h-[34px]"></div>}
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => setFormData({ ...formData, locations: [...formData.locations, { state: "", city: "", pincode: "" }] })} className="text-xs text-primary font-bold hover:underline">+ Add Location</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Expiry Date</label>
+                        <input
+                          type="date"
+                          name="jobExpiryDate"
+                          value={formData.jobExpiryDate}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Hiring Process</label>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
+                            {['FaceToFace', 'Writtentest', 'Telephonic', 'GroupDiscussion', 'Walk In'].map(method => (
+                                <label key={method} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={formData.hiringProcess.includes(method)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setFormData({...formData, hiringProcess: [...formData.hiringProcess, method]});
+                                        } else {
+                                            setFormData({...formData, hiringProcess: formData.hiringProcess.filter(m => m !== method)});
+                                        }
+                                      }}
+                                    />
+                                    {method}
+                                </label>
+                            ))}
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Position Open for</label>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
+                            {['Male', 'Female', 'Transgender', 'Other'].map(gender => (
+                                <label key={gender} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={formData.positionOpenFor.includes(gender)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setFormData({...formData, positionOpenFor: [...formData.positionOpenFor, gender]});
+                                        } else {
+                                            setFormData({...formData, positionOpenFor: formData.positionOpenFor.filter(g => g !== gender)});
+                                        }
+                                      }}
+                                    />
+                                    {gender}
+                                </label>
+                            ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Other Benefit</label>
+                        <select
+                          name="otherBenefit"
+                          value={formData.otherBenefit}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">None selected</option>
+                            <option value="Health Insurance">Health Insurance</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Meals">Meals</option>
+                        </select>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Open for Physically Challenged?</label>
+                        <select
+                          name="openForPhysicallyChallenged"
+                          value={formData.openForPhysicallyChallenged}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">--Select--</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Organisation Name</label>
+                        <input
+                          type="text"
+                          name="organisationName"
+                          value={formData.organisationName}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Company Name *</label>
-                <input
-                  type="text"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Acme Tech Solutions"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white"
-                  required
-                />
+              <div className="border-t border-slate-200 pt-4 mt-6">
+                  <h4 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider ">Your Details</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Name</label>
+                        <input
+                          type="text"
+                          name="companyName"
+                          value={formData.companyName}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Type</label>
+                        <select
+                          name="companyType"
+                          value={formData.companyType}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">--Select--</option>
+                            <option value="Private">Private</option>
+                            <option value="Public">Public</option>
+                            <option value="Government">Government</option>
+                            <option value="NGO">NGO</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Contact Person Name</label>
+                        <input
+                          type="text"
+                          name="contactPersonName"
+                          value={formData.contactPersonName}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Designation</label>
+                        <input
+                          type="text"
+                          name="designation"
+                          value={formData.designation}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Mobile number</label>
+                        <input
+                          type="text"
+                          name="mobileNumber"
+                          value={formData.mobileNumber}
+                          onChange={handleInputChange}
+                          placeholder="Enter 10 Digit Phone No."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Role</label>
+                        <input
+                          type="text"
+                          name="yourDetailsJobRole"
+                          value={formData.yourDetailsJobRole}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Total Number of Openings</label>
+                        <input
+                          type="number"
+                          name="yourDetailsTotalOpenings"
+                          value={formData.yourDetailsTotalOpenings}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">State</label>
+                        <Select
+                          options={INDIA_STATES}
+                          value={INDIA_STATES.find(s => s.value === formData.yourDetailsState) || null}
+                          onChange={(selected) => {
+                            setFormData({
+                              ...formData,
+                              yourDetailsState: selected ? selected.value : "",
+                              yourDetailsCity: "" 
+                            });
+                          }}
+                          placeholder="Search State..."
+                          isClearable
+                          isSearchable
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              backgroundColor: '#f8fafc',
+                              borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                              boxShadow: 'none',
+                              '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                              borderRadius: '0.5rem',
+                              minHeight: '34px',
+                              fontSize: '12px'
+                            }),
+                            menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                          }}
+                        />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">City</label>
+                        <Select
+                          options={(() => {
+                            if (!formData.yourDetailsState) return [];
+                            const stateObj = INDIA_STATES.find(s => s.value === formData.yourDetailsState);
+                            if (!stateObj) return [];
+                            const cities = City.getCitiesOfState(INDIA_ISO_CODE, stateObj.isoCode);
+                            const uniqueCities = [...new Set(cities.map(c => c.name))];
+                            return uniqueCities.map(c => ({ value: c, label: c }));
+                          })()}
+                          value={formData.yourDetailsCity ? { value: formData.yourDetailsCity, label: formData.yourDetailsCity } : null}
+                          onChange={(selected) => {
+                            setFormData({
+                              ...formData,
+                              yourDetailsCity: selected ? selected.value : ""
+                            });
+                          }}
+                          placeholder={formData.yourDetailsState ? "Search City..." : "Select State first"}
+                          isDisabled={!formData.yourDetailsState}
+                          isClearable
+                          isSearchable
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              backgroundColor: '#f8fafc',
+                              borderColor: state.isFocused ? '#110060' : '#e2e8f0',
+                              boxShadow: 'none',
+                              '&:hover': { borderColor: state.isFocused ? '#110060' : '#e2e8f0' },
+                              borderRadius: '0.5rem',
+                              minHeight: '34px',
+                              fontSize: '12px'
+                            }),
+                            menu: base => ({ ...base, fontSize: '12px', zIndex: 50 })
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Salary Range(INR)</label>
+                        <div className="flex gap-2">
+                            <input
+                              type="number"
+                              name="yourDetailsMinSalary"
+                              value={formData.yourDetailsMinSalary}
+                              onChange={handleInputChange}
+                              placeholder="Min Salary"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                            <input
+                              type="number"
+                              name="yourDetailsMaxSalary"
+                              value={formData.yourDetailsMaxSalary}
+                              onChange={handleInputChange}
+                              placeholder="Max Salary"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                            />
+                        </div>
+                      </div>
+                  </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Job Title *</label>
-                  <input
-                    type="text"
-                    name="jobProfile"
-                    value={formData.jobProfile}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Frontend Engineer"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Openings *</label>
-                  <input
-                    type="number"
-                    name="candidatesRequired"
-                    value={formData.candidatesRequired}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 5"
-                    min="1"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Location *</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Remote / Chicago / Bengaluru"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-1.5">Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Summary of responsibilities, requirements, and salary package..."
-                  rows="3"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 outline-none text-xs focus:border-primary focus:bg-white resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={closeJobModal}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition"
-                >
-                  Cancel
-                </button>
+              <div className="flex items-center justify-start gap-3 pt-4 border-t border-slate-200 mt-auto sticky bottom-0 bg-white pb-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/95 text-white text-xs font-bold shadow-sm transition disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/95 text-white text-sm font-bold shadow-md transition disabled:opacity-50"
                 >
-                  {submitting ? "Saving..." : (modalMode === "create" ? "Submit Job Profile" : "Save Changes")}
+                  {submitting ? "SUBMITTING..." : "SUBMIT"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeJobModal}
+                  className="px-6 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-bold transition ml-auto"
+                >
+                  Cancel
                 </button>
               </div>
 
@@ -1007,6 +1454,14 @@ const EmployerDashboard = () => {
           </div>
         </div>
       )}
+
+              </div>
+            </main>
+
+          </div>
+        </div>
+      </div>
+
     </>
   );
 };

@@ -150,7 +150,7 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    email = req.user?.workEmail || "guest@example.com";
+    let email = req.user?.workEmail || "guest@example.com";
     let phone = "";
 
     if (answers) {
@@ -360,7 +360,7 @@ export const getBookingById = async (req, res) => {
 export const getBookingsByEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const bookings = await Booking.find({ event: eventId }).sort({
+    const bookings = await Booking.find({ event: eventId }).populate("user").sort({
       createdAt: -1,
     });
     res.json(bookings);

@@ -68,7 +68,7 @@ const AdminDashboard = () => {
   return (
     <>
     <CreateEventHeader />
-    <div className="h-screen flex flex-col overflow-hidden bg-[#F8FAFC] pt-[60px]">
+    <div className="h-screen flex flex-col overflow-hidden  pt-[60px]">
       
       <div className="flex-1 w-full overflow-hidden">
         <div className="grid grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)] h-full overflow-hidden">

@@ -91,7 +91,7 @@ const AttendeeDetailsPage = () => {
         totalItems,
         answers
       });
-      navigate(`/fair/${id}/booking-success/${response._id}`);
+      navigate(`/event/${id}/booking-success/${response._id}`);
     } catch (err) {
       alert("Failed to book tickets. " + (err.message || "Please try again."));
       setSubmitting(false);

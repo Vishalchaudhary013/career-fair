@@ -6,23 +6,30 @@ const CandidateDetailsModal = ({ isOpen, onClose, booking, eventData }) => {
 
 
   const getAttendeeName = () => {
+    let titlePrefix = "";
     if (booking.answers) {
-      if (booking.answers.q_name) return booking.answers.q_name;
+      const titleQuestion = eventData?.questions?.find(q => q.title.toLowerCase().includes("title"));
+      if (titleQuestion) {
+        const tId = titleQuestion.id || titleQuestion._id;
+        if (booking.answers[tId]) titlePrefix = booking.answers[tId] + " ";
+      }
+      
+      if (booking.answers.q_name) return titlePrefix + booking.answers.q_name;
       const nameQuestion = eventData?.questions?.find(q => {
         const title = q.title.toLowerCase();
         return title.includes("name") && !title.includes("company") && !title.includes("college") && !title.includes("university") && !title.includes("institute") && !title.includes("branch");
       });
       if (nameQuestion) {
         const qId = nameQuestion.id || nameQuestion._id;
-        if (booking.answers[qId]) return booking.answers[qId];
+        if (booking.answers[qId]) return titlePrefix + booking.answers[qId];
       }
       const nameKey = Object.keys(booking.answers).find(key => {
         const k = key.toLowerCase();
         return k.includes("name") && !k.includes("company") && !k.includes("college") && !k.includes("university") && !k.includes("institute") && !k.includes("branch");
       });
-      if (nameKey && booking.answers[nameKey]) return booking.answers[nameKey];
+      if (nameKey && booking.answers[nameKey]) return titlePrefix + booking.answers[nameKey];
     }
-    return booking.email ? booking.email.split('@')[0] : 'Guest';
+    return titlePrefix + (booking.user?.name || booking.user?.userName || (booking.email ? booking.email.split('@')[0] : 'Guest'));
   };
 
   
@@ -44,7 +51,10 @@ const CandidateDetailsModal = ({ isOpen, onClose, booking, eventData }) => {
   };
 
  
-  groupedAnswers["1. Personal Information"].push({ label: "Email", value: booking.email });
+  const hasEmailQuestion = eventData?.questions?.some(q => q.title.toLowerCase().includes("email"));
+  if (!hasEmailQuestion) {
+    groupedAnswers["1. Personal Information"].push({ label: "Email", value: booking.email });
+  }
   
   
   if (eventData?.questions && booking.answers) {
@@ -52,6 +62,7 @@ const CandidateDetailsModal = ({ isOpen, onClose, booking, eventData }) => {
       const qTitleLower = q.title.toLowerCase();
      
       if (qTitleLower.includes("name") && !qTitleLower.includes("company") && !qTitleLower.includes("college") && !qTitleLower.includes("university") && !qTitleLower.includes("institute") && !qTitleLower.includes("branch")) return; 
+      if (qTitleLower.includes("title")) return;
 
       const qId = q.id || q._id;
       let answer = booking.answers[qId];

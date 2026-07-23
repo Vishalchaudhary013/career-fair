@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, X, Building } from "lucide-react";
 import Navbar from "../section/Navbar";
 import Footer from "../section/Footer";
 import { getAllEvents } from "../services/eventService";
@@ -311,8 +311,28 @@ const EventCalendarPage = () => {
                 <p className="text-lg font-medium">No fairs in {MONTHS[month]} {year}</p>
               </div>
             ) : monthEvents.map((event, idx) => {
-              const isOnline = event.venue?.venueOption === "online";
-              const location = isOnline ? "Online" : (event.venue?.venueName || event.venue?.city || "Location TBD");
+              let isOnline = false;
+              if (typeof event.venue === 'string') {
+                isOnline = true;
+              } else if (event.venue) {
+                const vn = event.venue.venueName?.toLowerCase() || "";
+                const c = event.venue.city?.toLowerCase() || "";
+                if (vn.includes("online") || vn.startsWith("http") || c.includes("online")) {
+                  isOnline = true;
+                }
+              }
+
+              let displayCity = "";
+              let displayVenue = "";
+              if (isOnline) {
+                displayVenue = "Online";
+              } else if (event.venue && typeof event.venue !== 'string') {
+                displayCity = event.venue.city || "";
+                displayVenue = event.venue.venueName || "Location TBD";
+              } else {
+                displayVenue = "Location TBD";
+              }
+
               const date = parseLocalDate(event.startDate);
               const colorClass = EVENT_COLORS[idx % EVENT_COLORS.length];
 
@@ -321,8 +341,8 @@ const EventCalendarPage = () => {
 
               return (
                 <Link to={`/event/${event._id}`} key={event._id}>
-                  <div className="flex justify-between items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all   group">
-                    <div className="flex gap-4 items-center  p-4">
+                  <div className="flex justify-between items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                    <div className="flex gap-4 items-center p-4 flex-1 min-w-0">
                       {/* Date badge */}
                       <div className={`shrink-0 w-16 py-2 rounded-xl flex flex-col items-center justify-center border ${colorClass}`}>
                         <span className="text-[10px] font-bold uppercase tracking-wide opacity-80">{date ? date.toLocaleDateString('en-US', { weekday: 'short' }) : "—"}</span>
@@ -337,7 +357,7 @@ const EventCalendarPage = () => {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-xl text-primary truncate group-hover:text-primary transition-colors">
+                        <h3 className="font-semibold text-xl text-primary truncate group-hover:text-primary transition-colors" title={event.fairName}>
                           {event.fairName}
                         </h3>
 
@@ -347,26 +367,25 @@ const EventCalendarPage = () => {
                           </span>
                         )}
                       </div>
-
-
                     </div>
 
-                    <div className="flex  items-stretch self-stretch">
-                      {event.startDate && (
-                        <div className="flex items-center border-l border-gray-200 px-4">
-                          <span className="text-lg text-gray-700 flex items-center gap-1">
-                            <Clock size={18} /> {formatTime(event.startDate?.slice(11, 16))}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center px-4">
-                        <span className="text-lg text-gray-700 flex items-center gap-1">
-                          <MapPin size={18} /> {location}
+                    <div className="flex items-stretch self-stretch shrink-0">
+                      <div className="hidden md:flex items-center border-l border-gray-200 px-4 w-32 shrink-0">
+                        <span className="text-sm text-gray-700 flex items-center gap-1.5 truncate" title={displayCity || (isOnline ? "Online" : "TBD")}>
+                          <MapPin size={16} className="shrink-0" />
+                          <span className="truncate">{displayCity || (isOnline ? "Online" : "TBD")}</span>
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center px-4  w-36 md:w-56 shrink-0">
+                        <span className="text-sm text-gray-700 flex items-center gap-1.5 truncate" title={displayVenue}>
+                          <Building size={16} className="shrink-0" />
+                          <span className="truncate">{displayVenue}</span>
                         </span>
                       </div>
 
-                      <div className="flex items-center pl-2 pr-4  border-gray-200">
-                        <MdKeyboardArrowRight size={16}  className=" text-white bg-primary w-5 h-5 rounded-full  " />
+                      <div className="flex items-center pl-2 pr-4">
+                        <MdKeyboardArrowRight size={16} className="text-white bg-primary w-5 h-5 rounded-full shrink-0" />
                       </div>
                     </div>
                   </div>

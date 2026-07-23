@@ -31,7 +31,7 @@ export const getDashboardStats = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: "SUPER_ADMIN" } }).select("-password").sort({ createdAt: -1 });
+    const users = await User.find({}).select("-password").sort({ createdAt: -1 });
     
 
     const usersWithDecryptedPasswords = users.map((u) => {

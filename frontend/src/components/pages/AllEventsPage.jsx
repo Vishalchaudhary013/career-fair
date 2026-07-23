@@ -58,7 +58,16 @@ const AllEventsPage = () => {
   }, []);
 
   const filteredEvents = React.useMemo(() => {
-    let filtered = fairs;
+    let filtered = events;
+
+    if (filterParam !== 'past') {
+      filtered = filtered.filter(e => {
+        if (!e.endDate) return true;
+        const endDate = new Date(e.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        return endDate >= new Date();
+      });
+    }
 
     if (selectedCategory && selectedCategory !== "All Categories") {
       const typeMap = {
@@ -76,9 +85,11 @@ const AllEventsPage = () => {
 
     if (filterParam === 'upcoming') {
       const now = new Date();
+      now.setHours(23, 59, 59, 999);
       filtered = filtered.filter(e => {
         const dateStr = e.endDate || e.startDate || e.basicInfo?.endDate || e.basicInfo?.startDate;
         const dateToCheck = dateStr ? new Date(dateStr) : null;
+        if (dateToCheck) dateToCheck.setHours(23, 59, 59, 999);
         return !dateToCheck || dateToCheck >= now;
       });
     } else if (filterParam === 'past') {
@@ -86,6 +97,7 @@ const AllEventsPage = () => {
       filtered = filtered.filter(e => {
         const dateStr = e.endDate || e.startDate || e.basicInfo?.endDate || e.basicInfo?.startDate;
         const dateToCheck = dateStr ? new Date(dateStr) : null;
+        if (dateToCheck) dateToCheck.setHours(23, 59, 59, 999);
         return dateToCheck && dateToCheck < now;
       });
     }
@@ -356,7 +368,7 @@ const AllEventsPage = () => {
 
 
             <div className="flex-grow">
-              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'}`}>
+              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
                 {filteredEvents.length > 0 ? (
                   filteredEvents.map(event => (
                     <EventFairsCard key={event._id} event={event} viewMode={viewMode} />

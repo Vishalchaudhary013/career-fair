@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, Calendar, User, LogOut } from "lucide-react";
+import useAuth from "../hooks/useAuth";
 
 const CreateEventHeader = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   
-  const user = { userName: "Admin", workEmail: "admin@example.com" };
-  const handleLogout = () => { console.log("Logged out (mock)") };
+  const { user, logout: handleLogout } = useAuth();
   
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ const CreateEventHeader = () => {
     navigate("/login");
   };
 
-  const displayName = user?.userName || user?.workEmail || "User";
+  const displayName = user?.name || user?.userName || user?.email || user?.workEmail || "User";
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
@@ -55,18 +55,29 @@ const CreateEventHeader = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800 truncate">{displayName}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.workEmail}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email || user?.workEmail}</p>
               </div>
             </div>
 
            
             <div className="py-1">
-              <Link to="/admin-dashboard" className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary transition uppercase">
-                          <Calendar size={16} /> ORGANIZING EVENTS
-                        </Link>
-              <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary transition uppercase border-t border-gray-50">
+              {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "EMPLOYER") && (
+                <Link 
+                  to={
+                    user?.role === "SUPER_ADMIN" 
+                      ? "/super-admin-dashboard" 
+                      : user?.role === "EMPLOYER"
+                      ? "/employer-dashboard"
+                      : `/admin-dashboard/${user.id || ""}`
+                  } 
+                  className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary transition uppercase"
+                >
+                  <Calendar size={16} /> DASHBOARD
+                </Link>
+              )}
+              {/* <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-primary transition uppercase border-t border-gray-50">
                 <User size={16} /> MY PROFILE
-              </Link>
+              </Link> */}
               <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-secondary transition uppercase border-t border-gray-50">
                 <LogOut size={16} /> LOGOUT
               </button>

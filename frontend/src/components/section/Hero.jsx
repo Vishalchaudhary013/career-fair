@@ -89,7 +89,7 @@ const Hero = () => {
               Discover careers, build skills, access internships, hire talent, and <br className="hidden md:block" /> participate in India's largest career & employability ecosystem.
             </div>
             
-            <div className="flex items-center justify-center gap-4 mb-8 md:mb-10 w-full px-4 sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10 w-full px-4 sm:w-auto">
               <button 
                 onClick={() => handleOpenModal("EMPLOYER")}
                 className='w-full sm:w-auto text-base md:text-xl font-semibold flex items-center justify-center gap-2.5 border border-primary/20 rounded-full px-6 py-2.5 bg-primary text-white transition-all shadow-sm hover:opacity-95 cursor-pointer'
@@ -98,7 +98,7 @@ const Hero = () => {
               </button>
               <button 
                 onClick={() => handleOpenModal("USER")}
-                className='w-full sm:w-auto text-base md:text-xl font-semibold text-primary inline-flex items-center justify-center gap-2.5 border border-primary/20 rounded-full px-6 py-2.5 bg-primary text-white transition-all shadow-sm hover:opacity-95 cursor-pointer'
+                className='w-full sm:w-auto text-base md:text-xl font-semibold text-primary flex items-center justify-center gap-2.5 border border-primary/20 rounded-full px-6 py-2.5 bg-primary text-white transition-all shadow-sm hover:opacity-95 cursor-pointer'
               >
                 <LucideHandshake /> Register as Job seeker
               </button>

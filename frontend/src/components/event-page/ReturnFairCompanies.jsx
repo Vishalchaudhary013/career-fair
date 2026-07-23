@@ -8,8 +8,8 @@ const CompanyCard = ({ jobCard }) => {
 
 
   const {
-    logo = "",
     logoLink = "",
+    logo = "",
     companyLogo = "",
     companyName = "Company Name",
     jobProfile = "",
@@ -20,7 +20,6 @@ const CompanyCard = ({ jobCard }) => {
   } = jobCard || {};
 
   const displayLogo = logoLink || logo || companyLogo;
-  const displayLocation = location || jobLocation || "Location not specified";
   const companyLogoSrc = displayLogo
     ? (displayLogo.startsWith("http") 
         ? displayLogo 
@@ -29,12 +28,29 @@ const CompanyCard = ({ jobCard }) => {
            : `${SERVER_URL}/uploads/logo/${displayLogo}`))
     : "";
 
-  const openModal = () => setIsModalOpen(true);
+  const displayLocation = location || jobLocation || "Location not specified";
+
+  const formatJobProfile = (profile) => {
+    if (!profile) return "";
+    let str = Array.isArray(profile) ? profile[0] : profile;
+    if (typeof str !== 'string') return "";
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return parsed.map(p => p.title).filter(Boolean).join("\n");
+      }
+    } catch(e) {}
+    if (Array.isArray(profile)) return profile.join("\n");
+    return String(profile);
+  };
+  const displayJobProfile = formatJobProfile(jobProfile).trim();
+  const hasJobDetails = Boolean(displayJobProfile) || Boolean(description?.trim());
+  const openModal = () => { if (hasJobDetails) setIsModalOpen(true); };
   const closeModal = () => setIsModalOpen(false);
 
   return (
     <>
-      <div className="relative group border border-gray-100 rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center h-[120px] cursor-pointer" onClick={openModal}>
+      <div className={`relative border border-gray-100 rounded-xl bg-white p-4 shadow-sm transition-all flex flex-col items-center justify-center h-[120px] ${hasJobDetails ? 'group hover:shadow-md cursor-pointer' : ''}`} onClick={openModal}>
         {companyLogoSrc ? (
           <img
             src={companyLogoSrc}
@@ -54,12 +70,13 @@ const CompanyCard = ({ jobCard }) => {
           {companyName.charAt(0).toUpperCase()}
         </div>
 
-        
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 rounded-xl">
-          <button className="bg-primary hover:bg-[#1a0b5a] text-white px-5 py-2 rounded-full font-semibold text-sm shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-            View Details
-          </button>
-        </div>
+        {hasJobDetails && (
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 rounded-xl">
+            <button className="bg-primary hover:bg-[#1a0b5a] text-white px-5 py-2 rounded-full font-semibold text-sm shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+              View Details
+            </button>
+          </div>
+        )}
       </div>
 
       
@@ -85,7 +102,7 @@ const CompanyCard = ({ jobCard }) => {
               <p className="mb-3">
                 <strong className="font-semibold text-gray-900">Job Profile:</strong>
               </p>
-              {(jobProfile || "").split("\n").map((line, i) => (
+              {(displayJobProfile || "").split("\n").map((line, i) => (
                 <p className="mb-2" key={i}>
                   {line}
                 </p>

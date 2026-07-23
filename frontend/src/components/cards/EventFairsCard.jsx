@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Calendar, MapPin, Monitor, Building, Users } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Calendar, MapPin, Monitor, Building, Users, X, ShieldCheck, LucideHandshake, ArrowRight, Mail } from "lucide-react";
 import { IoLocation } from "react-icons/io5";
 import { IoMdShare } from "react-icons/io";
 import { GoArrowUpRight } from "react-icons/go";
@@ -7,11 +7,66 @@ import ShareModal from "../section/ShareModal";
 import { useState } from "react";
 import { getMediaUrl } from "../services/api";
 import { formatDate } from "../../utils/dateFormatter";
+import useAuth from "../hooks/useAuth";
 
 const EventFairsCard = ({ event, viewMode = 'grid' }) => {
+    const navigate = useNavigate();
     const [shareModalEventId, setShareModalEventId] = useState(null);
+    const { sendOtp, verifyOtp, loading, isAuthenticated } = useAuth();
+    
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const [step, setStep] = useState("EMAIL");
+    const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
 
     if (!event) return null;
+
+    const handlePostJobClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isAuthenticated) {
+            navigate('/employer-dashboard', { state: { openPostJobFor: event } });
+        } else {
+            setStep("EMAIL");
+            setEmail("");
+            setOtp("");
+            setErrorMsg("");
+            setShowOtpModal(true);
+        }
+    };
+
+    const handleSendOtpSubmit = async (e) => {
+        e.preventDefault();
+        setErrorMsg("");
+        if (!email.trim()) return;
+
+        try {
+            const res = await sendOtp({ email: email.trim(), role: "EMPLOYER" });
+            if (res?.alreadyVerified) {
+                setShowOtpModal(false);
+                navigate('/employer-dashboard', { state: { openPostJobFor: event } });
+                return;
+            }
+            setStep("OTP");
+        } catch (err) {
+            setErrorMsg(err.response?.data?.message || "Failed to send OTP. Please try again.");
+        }
+    };
+
+    const handleVerifyOtpSubmit = async (e) => {
+        e.preventDefault();
+        setErrorMsg("");
+        if (!otp.trim()) return;
+
+        try {
+            await verifyOtp({ email: email.trim(), otp: otp.trim(), role: "EMPLOYER" });
+            setShowOtpModal(false);
+            navigate('/employer-dashboard', { state: { openPostJobFor: event } });
+        } catch (err) {
+            setErrorMsg(err.response?.data?.message || "Invalid or expired OTP. Please try again.");
+        }
+    };
 
     const bannerUrl = event.fairBanner ? getMediaUrl(event.fairBanner) : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3";
     const logoUrl = event.fairLogo ? getMediaUrl(event.fairLogo) : null;
@@ -115,24 +170,122 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
         </div>
     );
 
+    const OtpModalUI = showOtpModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowOtpModal(false); setStep("EMAIL"); }}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition cursor-pointer"
+                >
+                    <X size={20} />
+                </button>
+
+                <div className="text-center mb-6">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[#110060]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#110060]">
+                        Employer Signup / Login
+                    </span>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-3">
+                        {step === "EMAIL" ? "Welcome to Career Fairs" : "Verify OTP"}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                        {step === "EMAIL" 
+                            ? "Enter your email to receive a verification code" 
+                            : `We sent a 6-digit code to ${email}`}
+                    </p>
+                </div>
+
+                {errorMsg && (
+                    <div className="mb-4 p-3 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-xl text-center">
+                        {errorMsg}
+                    </div>
+                )}
+
+                {step === "EMAIL" ? (
+                    <form onSubmit={handleSendOtpSubmit} className="space-y-4">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-700 text-left">Email Address</label>
+                            <div className="relative">
+                                <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="name@company.com"
+                                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 outline-none transition focus:border-[#110060] focus:bg-white text-gray-800 font-medium"
+                                    required
+                                />
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500 text-left">
+                                New users will receive a one-time OTP for email verification.
+                            </p>
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading || !email.trim()}
+                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#8a8da8] py-3.5 text-sm font-semibold text-white transition hover:bg-[#8a8da8]/90 disabled:opacity-50 cursor-pointer shadow-md"
+                        >
+                            {loading ? "Logging in..." : "Log In"}
+                            <ArrowRight size={16} />
+                        </button>
+                    </form>
+                ) : (
+                    <form onSubmit={handleVerifyOtpSubmit} className="space-y-4">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-700 text-left">Enter 6-Digit OTP</label>
+                            <div className="relative">
+                                <ShieldCheck className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    maxLength="6"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    placeholder="000000"
+                                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-4 text-center text-xl tracking-[0.4em] font-bold outline-none transition focus:border-[#110060] focus:bg-white text-gray-800"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading || otp.length !== 6}
+                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00875a] py-3.5 text-sm font-semibold text-white transition hover:bg-[#00875a]/90 disabled:opacity-50 cursor-pointer shadow-md"
+                        >
+                            {loading ? "Verifying..." : "Verify & Continue"}
+                            <ArrowRight size={16} />
+                        </button>
+                        <div className="text-center pt-2">
+                            <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStep("EMAIL"); setOtp(""); setErrorMsg(""); }}
+                                className="text-xs font-semibold text-[#110060] hover:underline cursor-pointer"
+                            >
+                                Change Email / Resend OTP
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
+
     if (viewMode === 'list') {
         return (
             <>
                 <Link to={`/event/${event._id}`} className="block w-full">
                     <div className="bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 border border-gray-100 flex flex-col md:flex-row h-full md:h-[220px] cursor-pointer relative group">
                         
-                        <div className="w-full md:w-[35%] h-48 md:h-full overflow-hidden relative shrink-0 p-3">
-                            <div className="w-full h-full rounded-xl overflow-hidden relative">
+                        <div className="w-full md:w-[35%] h-48 md:h-full overflow-hidden relative shrink-0 ">
+                            <div className="w-full h-full rounded-l-xl overflow-hidden relative">
                                 <img
                                     src={bannerUrl}
                                     alt={event.fairName}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className="w-full h-full object-fit transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <ShareButton />
                             </div>
                         </div>
                        
-                        <div className="p-5 md:p-6 flex flex-col flex-grow min-w-0 justify-center">
+                        <div className="p-3 md:p-4 flex flex-col flex-grow min-w-0 justify-center">
                             <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-3">
                                 <Calendar size={16} />
                                 <span>{dateDisplay} {timeDisplay && ` • ${timeDisplay}`}</span>
@@ -147,18 +300,26 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
 
                             <div className="flex items-center justify-between mt-auto">
                                 <div className="flex gap-6">
+                                     <div>
+                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Mode</p>
+                                        <p className="text-base font-bold text-gray-800">{isOnline ? 'Virtual' : 'In-Person'}</p>
+                                    </div>
+                                     <div>
+                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Location</p>
+                                        <p className="text-base font-bold text-gray-800">{cityState}</p>
+                                    </div>
                                     <div>
-                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Openings</p>
+                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Job Openings</p>
                                         <p className="text-base font-bold text-gray-800">{totalOpenings > 0 ? `${totalOpenings}+` : 'TBD'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Companies</p>
+                                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Hiring Companies</p>
                                         <p className="text-base font-bold text-gray-800">{totalCompanies > 0 ? `${totalCompanies}+` : 'TBD'}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3 pt-3">
-                                    <div className="relative group/btn cursor-pointer min-w-[110px]">
+                                    <div className="relative group/btn cursor-pointer min-w-[110px]" onClick={handlePostJobClick}>
                                         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold px-3 py-0.5 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 bg-secondary text-white transition-transform group-hover/btn:-translate-y-0.5">
                                             Employer
                                         </div>
@@ -166,7 +327,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                                             <span className="font-bold text-[13px]">Post Job</span>
                                         </div>
                                     </div>
-                                    <div className="relative group/btn cursor-pointer min-w-[110px]">
+                                    <div className="relative group/btn cursor-pointer min-w-[110px]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/event/${event._id}/attendee-details`); }}>
                                         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold px-3 py-0.5 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 bg-secondary text-white transition-transform group-hover/btn:-translate-y-0.5">
                                             Candidate
                                         </div>
@@ -186,6 +347,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                     eventTitle={event.fairName || ""}
                     shareUrl={`${window.location.origin}/fair/${shareModalEventId}`}
                 />
+                {OtpModalUI}
             </>
         );
     }
@@ -196,12 +358,12 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                 <div className="bg-white rounded-xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-all duration-300 border border-gray-100 flex flex-col h-full cursor-pointer relative group">
                     
                     {/* Banner Image Area */}
-                    <div className="h-[200px] relative shrink-0">
+                    <div className="h-[250px] relative shrink-0">
                         <div className="w-full h-full rounded-t-xl overflow-hidden relative">
                             <img
                                 src={bannerUrl}
                                 alt={event.fairName}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                className="w-full h-full object-fit transition-transform duration-700 group-hover:scale-105"
                             />
                             <ShareButton />
                         </div>
@@ -270,7 +432,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                                     <Building size={16} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[12px] text-gray-500 font-medium leading-none mb-1">Companies</p>
+                                    <p className="text-[12px] text-gray-500 font-medium leading-none mb-1">Hiring Companies</p>
                                     <p className="text-[15px] font-bold text-gray-800 leading-none whitespace-nowrap">{totalCompanies > 0 ? `${totalCompanies}+` : 'TBD'}</p>
                                 </div>
                             </div>
@@ -279,7 +441,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                         {/* Action Buttons */}
                         <div className="mt-auto grid grid-cols-2 gap-4 pt-5 pb-1">
                             {/* Employer Button */}
-                            <div className="relative group/btn cursor-pointer">
+                            <div className="relative group/btn cursor-pointer" onClick={handlePostJobClick}>
                                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 bg-secondary text-white transition-transform group-hover/btn:-translate-y-0.5">
                                     Employer
                                 </div>
@@ -289,7 +451,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                             </div>
 
                             {/* Candidate Button */}
-                            <div className="relative group/btn cursor-pointer">
+                            <div className="relative group/btn cursor-pointer" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/event/${event._id}/attendee-details`); }}>
                                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 bg-secondary text-white transition-transform group-hover/btn:-translate-y-0.5">
                                     Candidate
                                 </div>
@@ -309,6 +471,7 @@ const EventFairsCard = ({ event, viewMode = 'grid' }) => {
                 eventTitle={event.fairName || ""}
                 shareUrl={`${window.location.origin}/fair/${shareModalEventId}`}
             />
+            {OtpModalUI}
         </>
     );
 };

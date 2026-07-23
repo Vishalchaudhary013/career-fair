@@ -9,7 +9,7 @@ import CandidateDetailsModal from "./CandidateDetailsModal";
 
 const EventResponsesView = ({ eventId, onBack }) => {
   const [bookings, setBookings] = useState([]);
-  const [fair, setEvent] = useState(null);
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("form"); 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -54,7 +54,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
           const nameKey = Object.keys(booking.answers).find(key => key.toLowerCase().includes("name"));
           if (nameKey && booking.answers[nameKey]) return booking.answers[nameKey];
         }
-        return booking.email ? booking.email.split('@')[0] : 'Guest';
+        return booking.user?.name || booking.user?.userName || (booking.email ? booking.email.split('@')[0] : 'Guest');
       };
 
       const baseRow = {
@@ -159,7 +159,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
         const nameKey = Object.keys(booking.answers).find(key => key.toLowerCase().includes("name"));
         if (nameKey && booking.answers[nameKey]) return booking.answers[nameKey];
       }
-      return booking.email ? booking.email.split('@')[0] : 'Guest';
+      return booking.user?.name || booking.user?.userName || (booking.email ? booking.email.split('@')[0] : 'Guest');
     };
 
     const categories = {
@@ -401,7 +401,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
                     const nameKey = Object.keys(booking.answers).find(key => key.toLowerCase().includes("name"));
                     if (nameKey && booking.answers[nameKey]) return booking.answers[nameKey];
                   }
-                  return booking.email ? booking.email.split('@')[0] : 'Guest';
+                  return booking.user?.name || booking.user?.userName || (booking.email ? booking.email.split('@')[0] : 'Guest');
                 };
 
                 const attendeeName = getAttendeeName();
@@ -498,7 +498,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
                         })()}
                         <td className="py-4 px-5 whitespace-nowrap text-center">
                           <button 
-                            onClick={() => downloadRegistrationPDF(booking, fair)}
+                            onClick={() => downloadRegistrationPDF(booking, event)}
                             className="text-[#00875A] hover:text-[#006644] text-sm font-medium transition-colors"
                           >
                             View PDF
