@@ -10,6 +10,7 @@ import superAdminRoutes from "./routes/superAdminRoutes.js";
 import bcrypt from "bcryptjs";
 import User from "./models/userModel.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import employerRoutes from "./routes/employerRoutes.js";
 dotenv.config();
 connectDB();
 
@@ -30,6 +31,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/superadmin", superAdminRoutes);
+app.use("/api/employer", employerRoutes);
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
   console.log(`server run on ${port}`);

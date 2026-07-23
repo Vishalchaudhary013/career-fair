@@ -31,7 +31,7 @@ const ShareModal = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const safeTitle = eventTitle ? eventTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'event';
+      const safeTitle = eventTitle ? eventTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'fair';
       a.download = `${safeTitle}-qr-code.png`;
       document.body.appendChild(a);
       a.click();
@@ -52,7 +52,7 @@ const ShareModal = ({
   const content = (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-[22px] font-semibold ${inline ? 'text-gray-800' : 'text-primary'}`}>Share Event</h3>
+        <h3 className={`text-[22px] font-semibold ${inline ? 'text-gray-800' : 'text-primary'}`}>Share Fair</h3>
         {!inline && (
           <button 
             onClick={(e) => {
@@ -110,7 +110,7 @@ const ShareModal = ({
           </div>
 
           <div className="flex flex-col items-center animate-in fade-in duration-150 py-2">
-            <p className="text-gray-500 text-sm mb-3 text-center font-medium">Scan or download this QR code to access the Event</p>
+            <p className="text-gray-500 text-sm mb-3 text-center font-medium">Scan or download this QR code to access the Fair</p>
             <div className="p-3 bg-white border border-black/10 rounded-2xl shadow-xs mb-4 hover:shadow-md hover:border-primary/30 transition-all duration-300">
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl)}`} alt="Event QR Code" className="w-36 h-36" />
             </div>

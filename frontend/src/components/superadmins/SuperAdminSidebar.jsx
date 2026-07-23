@@ -3,7 +3,7 @@
  * -- It contains three sections ::
  * --- Dashboard: This section contains the dashboard of the super admin.
  * --- Manage Admins: This section contains the all the data of admins.
- * --- Manage Job Fairs: This section contains the all the job fairs data and super admin can edit and delete the job fairs.
+ * --- Manage Job Fairs: This section contains the all the job fairs data and super admin can edit and delete the job events.
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

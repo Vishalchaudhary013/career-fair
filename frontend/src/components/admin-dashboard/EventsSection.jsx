@@ -24,7 +24,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
 
   React.useEffect(() => {
     const fetchCats = async () => {
-      const defaultNames = ["Career Drive", "College Festivals", "Competitions", "Conferences", "Cultural Events", "Hackathon", "Mentorships", "Olympiad", "Quizzes", "Webinars", "Workshop"];
+      const defaultNames = ["Career Drive", "College Festivals", "Competitions", "Conferences", "Cultural Fairs", "Hackathon", "Mentorships", "Olympiad", "Quizzes", "Webinars", "Workshop"];
       const eventCats = events.map(e => e.category).filter(Boolean);
       try {
         const fetched = await getCategories();
@@ -47,7 +47,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
   const filteredEvents = useMemo(() => {
     const now = new Date();
     return events.filter(event => {
-      const dateStr = event.endDate || event.startDate;
+      const dateStr = event.endDate || event.startDate || event.basicInfo?.endDate || event.basicInfo?.startDate;
       let isExpired = false;
       let eventYear = null;
       let eventMonth = null;
@@ -56,7 +56,6 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
         const eventDate = new Date(dateStr);
         eventYear = eventDate.getFullYear().toString();
         eventMonth = (eventDate.getMonth() + 1).toString();
-        eventDate.setHours(23, 59, 59, 999);
         isExpired = eventDate.getTime() < now.getTime();
       } else {
         isExpired = activeTab !== "upcoming"; 
@@ -89,7 +88,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
   };
 
   const handleDelete = async (id) => {
-    const confirmed = window.confirm("Are you sure you want to delete this event? This action cannot be undone.");
+    const confirmed = window.confirm("Are you sure you want to delete this fair? This action cannot be undone.");
     if (!confirmed) return;
 
     try {
@@ -121,7 +120,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
   };
 
   const handleDeleteSelected = async () => {
-    const confirmed = window.confirm(`Are you sure you want to delete ${selectedEvents.length} events? This action cannot be undone.`);
+    const confirmed = window.confirm(`Are you sure you want to delete ${selectedEvents.length} fairs? This action cannot be undone.`);
     if (!confirmed) return;
 
     try {
@@ -144,8 +143,8 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
     <div className="border border-[#E2EAFC] bg-white shadow-sm overflow-hidden">
       <div className="p-5 border-b border-[#E2EAFC] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-primary">Your Events</h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">Manage and edit your created events</p>
+          <h3 className="text-lg font-semibold text-primary">Your Fairs</h3>
+          <p className="text-xs font-medium text-slate-500 mt-1">Manage and edit your created fairs</p>
         </div>
         <div className="flex items-center gap-3">
           {selectedEvents.length > 0 && (
@@ -158,10 +157,10 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
             </button>
           )}
           <button 
-            onClick={() => navigate('/create-event')}
+            onClick={() => navigate('/create-fair')}
             className="bg-primary hover:bg-[#180080] text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm shadow-sm"
           >
-            + Create Event
+            + Create Fair
           </button>
         </div>
       </div>
@@ -172,13 +171,13 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
           onClick={() => { setActiveTab("upcoming"); setCurrentPage(1); }}
           className={`py-3 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === "upcoming" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
         >
-          Upcoming Events
+          Upcoming Fairs
         </button>
         <button 
           onClick={() => { setActiveTab("expired"); setCurrentPage(1); }}
           className={`py-3 px-4 text-sm font-bold border-b-2 transition-colors ${activeTab === "expired" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
         >
-          Expired Events
+          Expired Fairs
         </button>
       </div>
 
@@ -237,10 +236,10 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
         <div className="p-12 text-center flex flex-col items-center">
           <FiCalendar size={48} className="text-slate-300 mb-4" />
           <p className="text-slate-600 font-medium mb-1">
-            {activeTab === "upcoming" ? "No upcoming events found" : "No expired events found"}
+            {activeTab === "upcoming" ? "No upcoming fairs found" : "No expired fairs found"}
           </p>
           <p className="text-sm text-slate-500">
-            {activeTab === "upcoming" ? "You haven't created any upcoming events yet." : "You have no expired events."}
+            {activeTab === "upcoming" ? "You haven't created any upcoming fairs yet." : "You have no expired events."}
           </p>
         </div>
       ) : (
@@ -257,7 +256,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className="py-3 px-5">Event Name</th>
+                  <th className="py-3 px-5">Fair Name</th>
                   <th className="py-3 px-5">Date & Time</th>
                   <th className="py-3 px-5">Location</th>
                   <th className="py-3 px-5">Responses</th>
@@ -277,7 +276,7 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
                       />
                     </td>
                     <td className="py-4 px-5 font-semibold text-slate-800">
-                      {item.fairName || item.basicInfo?.title || "Untitled Event"}
+                      {item.fairName || item.basicInfo?.title || "Untitled Fair"}
                     </td>
                     <td className="py-4 px-5 text-slate-600">
                       {item.startDate ? formatDate(item.startDate) : (item.basicInfo?.startDate ? formatDate(item.basicInfo.startDate) : "TBA")}
@@ -300,8 +299,8 @@ const EventsSection = ({ events, setEvents, busy, setBusy }) => {
                       </div>
                     </td>
                     <td className="py-4 px-5">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-green-100 text-green-700">
-                        Published
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${activeTab === 'expired' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                        {activeTab === 'expired' ? 'Expired' : 'Published'}
                       </span>
                     </td>
                     <td className="py-4 px-5 text-right">

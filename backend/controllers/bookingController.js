@@ -65,7 +65,6 @@ const getEventMeta = (event) => {
   };
 };
 
-// @desc    Generate EAN-13 styled barcode HTML for email bodies
 const generateHtmlBarcode = (bookingId) => {
   const codeStr = String(bookingId || "0120034399434").replace(
     /[^a-zA-Z0-9]/g,
@@ -77,7 +76,7 @@ const generateHtmlBarcode = (bookingId) => {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     const positive = Math.abs(hash);
-    return (positive + "742558973912").slice(-12); // take last 12 digits
+    return (positive + "742558973912").slice(-12); 
   };
 
   const displayVal = getNumericId(codeStr);
@@ -96,11 +95,11 @@ const generateHtmlBarcode = (bookingId) => {
 
   let barsHtml = "";
 
-  // Left guard (longer lines)
+  
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; margin-right: 2px; vertical-align: top;"></span>`;
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; margin-right: 3px; vertical-align: top;"></span>`;
 
-  // Left data (shorter lines)
+  
   leftSequence.forEach((w, idx) => {
     const actualW = w * 1.6;
     if (idx % 2 === 0) {
@@ -110,11 +109,10 @@ const generateHtmlBarcode = (bookingId) => {
     }
   });
 
-  // Middle guard (longer lines)
+ 
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; margin-right: 2px; margin-left: 2px; vertical-align: top;"></span>`;
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; margin-right: 3px; vertical-align: top;"></span>`;
 
-  // Right data (shorter lines)
   rightSequence.forEach((w, idx) => {
     const actualW = w * 1.6;
     if (idx % 2 === 0) {
@@ -124,7 +122,6 @@ const generateHtmlBarcode = (bookingId) => {
     }
   });
 
-  // Right guard (longer lines)
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; margin-right: 2px; margin-left: 2px; vertical-align: top;"></span>`;
   barsHtml += `<span style="display: inline-block; width: 2px; height: 50px; background-color: #1e293b; vertical-align: top;"></span>`;
 
@@ -144,24 +141,18 @@ const generateHtmlBarcode = (bookingId) => {
   `;
 };
 
-// @desc    Create new booking
-// @route   POST /api/bookings
-// @access  Private/Public depending on auth implementation
 export const createBooking = async (req, res) => {
   try {
     const { eventId, tickets, totalPrice, totalItems, answers } = req.body;
 
-    // Find the event
     const event = await Event.findById(eventId).populate("organizer");
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Try to extract email and phone from answers (defaulting to a logged-in user if available, but assuming anonymous for now)
-    let email = req.user?.workEmail || "guest@example.com";
+    email = req.user?.workEmail || "guest@example.com";
     let phone = "";
 
-    // Look for email and phone in answers
     if (answers) {
       for (const [key, value] of Object.entries(answers)) {
         if (typeof value === "string") {
@@ -183,7 +174,7 @@ export const createBooking = async (req, res) => {
 
     const booking = await Booking.create({
       event: eventId,
-      user: req.user?._id || null, // Optional if guest checkout allowed
+      user: req.user?._id || null, 
       email,
       tickets,
       totalPrice,
@@ -192,12 +183,12 @@ export const createBooking = async (req, res) => {
       qrCodeId,
     });
 
-    // Generate QR Code image as data URI (using order ID)
+    
     const qrCodeDataUri = await QRCode.toDataURL(booking._id.toString());
 
     const { title, dateStr, timeStr } = getEventMeta(event);
 
-    // Get Attendee Name
+    
     const getAttendeeName = () => {
       if (answers) {
         if (answers.q_name) return answers.q_name;
@@ -217,9 +208,9 @@ export const createBooking = async (req, res) => {
     };
     const attendeeName = getAttendeeName();
 
-    // Email will use the attached QR code instead of the barcode HTML
+    
 
-    // Send Email
+    
     try {
       await sendEmail({
         email,
@@ -316,7 +307,7 @@ export const createBooking = async (req, res) => {
       console.error("Failed to send ticket email:", emailErr);
     }
 
-    // Send WhatsApp (mock)
+    
     if (phone) {
       try {
         await sendWhatsApp({
@@ -333,7 +324,7 @@ export const createBooking = async (req, res) => {
       }
     }
 
-    // Send Notification to Organizer
+    
     if (event.organizer && event.organizer.email) {
       try {
         await sendEmail({
@@ -353,9 +344,7 @@ export const createBooking = async (req, res) => {
   }
 };
 
-// @desc    Get booking by ID
-// @route   GET /api/bookings/:id
-// @access  Public
+
 export const getBookingById = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id).populate("event");
@@ -368,9 +357,6 @@ export const getBookingById = async (req, res) => {
   }
 };
 
-// @desc    Get bookings by Event ID
-// @route   GET /api/bookings/event/:eventId
-// @access  Private (Organizer only)
 export const getBookingsByEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -383,20 +369,16 @@ export const getBookingsByEvent = async (req, res) => {
   }
 };
 
-// @desc    Verify QR Code
-// @route   POST /api/bookings/verify-qr
-// @access  Private (Organizer only)
+
 export const verifyQR = async (req, res) => {
   try {
     const { qrCodeId } = req.body;
     let booking;
 
-    // Check if the qrCodeId is a valid ObjectId (since we now use the order ID for QR codes)
     if (mongoose.Types.ObjectId.isValid(qrCodeId)) {
       booking = await Booking.findById(qrCodeId).populate("event");
     }
 
-    // Fallback for legacy QR codes that used UUIDs
     if (!booking) {
       booking = await Booking.findOne({ qrCodeId }).populate("event");
     }
@@ -422,9 +404,6 @@ export const verifyQR = async (req, res) => {
   }
 };
 
-// @desc    Delete booking by ID
-// @route   DELETE /api/bookings/:id
-// @access  Private (Organizer/Admin)
 export const deleteBooking = async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);

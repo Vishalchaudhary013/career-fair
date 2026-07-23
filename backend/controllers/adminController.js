@@ -8,9 +8,7 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Get all users
-// @route   GET /api/admin/users
-// @access  Private/SuperAdmin
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}).select("-password");
@@ -20,9 +18,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// @desc    Impersonate user
-// @route   POST /api/admin/users/:id/impersonate
-// @access  Private/SuperAdmin
+
 export const impersonateUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -35,6 +31,7 @@ export const impersonateUser = async (req, res) => {
       userName: user.userName,
       hostName: user.hostName,
       workEmail: user.workEmail,
+      role: user.role,
       token: generateToken(user._id),
       impersonated: true
     });
@@ -43,9 +40,7 @@ export const impersonateUser = async (req, res) => {
   }
 };
 
-// @desc    Change user password
-// @route   PUT /api/admin/users/:id/password
-// @access  Private/SuperAdmin
+
 export const changeUserPassword = async (req, res) => {
   try {
     const { password } = req.body;
@@ -77,9 +72,6 @@ export const changeUserPassword = async (req, res) => {
   }
 };
 
-// @desc    Delete user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/SuperAdmin
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

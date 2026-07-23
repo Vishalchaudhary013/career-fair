@@ -32,7 +32,7 @@ const AdminHeader = ({ activeSection, user }) => {
       
       <div>
         <h1 className="text-xl font-bold text-primary">
-          {activeSection === "Overview" ? "Organizer Overview" : "Manage Events"}
+          {activeSection === "Overview" ? "Organizer Overview" : "Manage Fairs"}
         </h1>
         <p className="text-[10px] tracking-[0.1em] text-slate-400 font-bold uppercase">
           Control Panel

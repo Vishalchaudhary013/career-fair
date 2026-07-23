@@ -143,7 +143,7 @@ const LocationTab = ({
         </label>
         {/* <label className="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="venueOption" value="online" checked={venueOption === "online"} onChange={() => { setVenueOption("online"); setCity("Online"); }} className="w-4 h-4 accent-primary cursor-pointer" />
-          <span className="text-sm font-medium text-gray-700">Online / Virtual Event</span>
+          <span className="text-sm font-medium text-gray-700">Online / Virtual Fair</span>
         </label> */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="venueOption" value="not-decided" checked={venueOption === "not-decided"} onChange={() => setVenueOption("not-decided")} className="w-4 h-4 accent-primary cursor-pointer" />
@@ -286,7 +286,7 @@ const LocationTab = ({
           />
         </div>
         <p className="text-xs text-gray-500 font-medium">
-          Note: This is an online fair. The streaming details can be updated anytime before the fair starts.
+          Note: This is an online event. The streaming details can be updated anytime before the fair starts.
         </p>
       </div>
     )}

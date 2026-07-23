@@ -4,15 +4,15 @@ import { FiLogOut, FiPieChart, FiCalendar } from "react-icons/fi";
 const AdminSidebar = ({ activeSection, setActiveSection, onLogout }) => {
   const menuItems = [
     { key: "Overview", label: "Overview", icon: <FiPieChart size={16} /> },
-    { key: "Events", label: "Events", icon: <FiCalendar size={16} /> },
-    // { key: "Expired-Events", label: "Expired Events", icon: <FiCalendar size={16} /> },
+    { key: "Fairs", label: "Fairs", icon: <FiCalendar size={16} /> },
+    // { key: "Expired-Fairs", label: "Expired Fairs", icon: <FiCalendar size={16} /> },
   ];
 
   return (
     <aside className="bg-[#E4EBFB] border border-[#D8E2F7]  p-4 xl:sticky xl:top-6 h-auto xl:h-full flex flex-col overflow-hidden">
       <div className="mb-7">
         <p className="text-slate-900 text-xl font-semibold">Dashboard</p>
-        <p className="text-[11px] tracking-[0.16em] text-slate-500 mt-1 font-semibold uppercase">Event Organizer</p>
+        <p className="text-[11px] tracking-[0.16em] text-slate-500 mt-1 font-semibold uppercase">Fair Organizer</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-7 sm:grid-cols-2 xl:grid-cols-1 xl:space-y-2 xl:gap-0 overflow-y-auto pr-1">

@@ -177,7 +177,7 @@ const EventLocation = ({ organizer, dbEvent }) => {
                 {(dbEvent?.organizerName || organizer?.hostName || organizer?.name || "O").charAt(0)}
               </div>
               <div className="flex flex-col gap-">
-                <h3 className="text-[18px] font-bold text-white">{dbEvent?.organizerName || organizer?.hostName || organizer?.name || "Event Organizer"}</h3>
+                <h3 className="text-[18px] font-bold text-white">{dbEvent?.organizerName || organizer?.hostName || organizer?.name || "Fair Organizer"}</h3>
                 {contact.primaryNumber && (
                   <p className="text-[14px] text-white font-semibold">Contact No. : {contact.primaryNumber}</p>
                 )}

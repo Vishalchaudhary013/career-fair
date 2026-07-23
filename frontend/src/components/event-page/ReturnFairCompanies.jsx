@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SERVER_URL } from "../../config";
 
@@ -133,9 +134,17 @@ const ReturnFairCompanies = React.memo(({ currentCards }) => {
       <h2 className="text-center text-primary text-2xl font-semibold mb-2">
         Connect with Our Hiring Partners. Your Career Growth Starts Here.
       </h2>
-      <h2 className="text-center mb-[35px] text-gray-600">
+      <h2 className="text-center mb-4 text-gray-600">
         <strong>Register for Free and Meet Our Partners!</strong>
       </h2>
+      {/* <div className="flex justify-center mb-6">
+        <Link 
+          to="/employer-dashboard" 
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-full transition cursor-pointer"
+        >
+          Are you an Employer? Join as Hiring Partner ↗
+        </Link>
+      </div> */}
 
       <div className="relative group/nav mt-4">
         {currentCards.length > 7 && (

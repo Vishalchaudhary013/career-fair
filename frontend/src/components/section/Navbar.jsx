@@ -41,7 +41,7 @@ const Navbar = () => {
       if (langCode === "en" && select.value !== "en") {
         select.value = "en";
       }
-      select.dispatchEvent(new Event("change"));
+      select.dispatchEvent(new Fair("change"));
     } else {
       if (langCode === "en") {
         document.cookie =
@@ -86,22 +86,22 @@ const Navbar = () => {
                 </span>
                 <div className="absolute top-full left-0 mt-0 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                   <div className="bg-white rounded shadow-lg border border-gray-100 py-2 flex flex-col">
-                    <Link to="/categories/technology" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Technology</Link>
-                    <Link to="/categories/business" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Business</Link>
-                    <Link to="/categories/arts" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Arts</Link>
+                    
+                    <Link to="/events?type=Job" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Job Fairs</Link>
+                    <Link to="/events?type=Internship" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Internship Fairs</Link>
+                    <Link to="/events?type=Apprenticeship" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Apprenticeship Fairs</Link>
                   </div>
                 </div>
               </div>
 
               <div className="relative group cursor-pointer py-4">
                 <span className="font-medium text-[16px] text-gray-700 hover:text-primary transition-colors flex items-center gap-1">
-                  Find Events <ChevronDown size={16} />
+                  Find Fairs <ChevronDown size={16} />
                 </span>
                 <div className="absolute top-full left-0 mt-0 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                   <div className="bg-white rounded shadow-lg border border-gray-100 py-2 flex flex-col">
-                    <Link to="/events/featured" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Featured Events</Link>
-                    <Link to="/events/upcoming" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Upcoming Events</Link>
-                    <Link to="/events/past" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Past Events</Link>
+                    <Link to="/events?filter=upcoming" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Upcoming Fairs</Link>
+                    <Link to="/events?filter=past" className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Past Fairs</Link>
                   </div>
                 </div>
               </div>
@@ -138,7 +138,7 @@ const Navbar = () => {
               >
                 <span className="absolute inset-0 origin-left scale-x-0 bg-secondary transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 <Ticket className="relative z-10 text-[#110053] transition-colors duration-300 group-hover:text-white"/>
-                <span className="relative z-10 font-medium transition-colors duration-300 group-hover:text-white">Create Event</span>
+                <span className="relative z-10 font-medium transition-colors duration-300 group-hover:text-white">Create Fair</span>
               </Link>
 
               {user ? (
@@ -151,8 +151,14 @@ const Navbar = () => {
                   
                   <div className="absolute right-0 top-full pt-4 w-[240px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                     <div className="bg-white rounded shadow-2xl border border-gray-200 py-3 flex flex-col">
-                      {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
-                        <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : `/admin-dashboard/${user.id || ""}`} className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Dashboard</Link>
+                      {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "EMPLOYER") && (
+                        <Link to={
+                          user?.role === "SUPER_ADMIN" 
+                            ? "/super-admin-dashboard" 
+                            : user?.role === "EMPLOYER"
+                            ? "/employer-dashboard"
+                            : `/admin-dashboard/${user.id || ""}`
+                        } className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Dashboard</Link>
                       )}
                       {/* <Link to="/profile" className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium">Manage Profile</Link> */}
                       <hr className="my-2 border-gray-100" />
@@ -200,33 +206,38 @@ const Navbar = () => {
               <div className="flex flex-col gap-2">
                 <div className="px-2 py-1 text-gray-700 font-medium">Categories</div>
                 <div className="flex flex-col pl-4 gap-2 border-l-2 border-gray-100 ml-4">
-                  <Link to="/categories/technology" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Technology</Link>
-                  <Link to="/categories/business" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Business</Link>
-                  <Link to="/categories/arts" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Arts</Link>
+                  <Link to="/events?type=Internship" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Internship Fairs</Link>
+                  <Link to="/events?type=Job" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Job Fairs</Link>
+                  <Link to="/events?type=Apprenticeship" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Apprenticeship Fairs</Link>
                 </div>
                 
-                <div className="px-2 py-1 text-gray-700 font-medium mt-2">Find Events</div>
+                <div className="px-2 py-1 text-gray-700 font-medium mt-2">Find Fairs</div>
                 <div className="flex flex-col pl-4 gap-2 border-l-2 border-gray-100 ml-4">
-                  <Link to="/events/featured" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Featured Events</Link>
-                  <Link to="/events/upcoming" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Upcoming Events</Link>
-                  <Link to="/events/past" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Past Events</Link>
+                  <Link to="/events?filter=upcoming" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Upcoming Fairs</Link>
+                  <Link to="/events?filter=past" className="text-gray-600 text-sm" onClick={() => setShowMobileMenu(false)}>Past Fairs</Link>
                 </div>
               </div>
 
               <Link to="/calendar" className="flex items-center gap-3 px-2 py-2 mt-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
-                <Calendar size={18} className="text-primary" /> Event Calendar
+                <Calendar size={18} className="text-primary" /> Fair Calendar
               </Link>
               <Link to="/gallery" className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
                 Gallery
               </Link>
               <Link to="/create-event" className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
-                <Ticket size={18} className="text-primary" /> Create Event
+                <Ticket size={18} className="text-primary" /> Create Fair
               </Link>
               
               {user ? (
                 <>
-                  {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
-                    <Link to={user?.role === "SUPER_ADMIN" ? "/super-admin-dashboard" : `/admin-dashboard/${user.id || ""}`} className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
+                  {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "EMPLOYER") && (
+                    <Link to={
+                      user?.role === "SUPER_ADMIN" 
+                        ? "/super-admin-dashboard" 
+                        : user?.role === "EMPLOYER"
+                        ? "/employer-dashboard"
+                        : `/admin-dashboard/${user.id || ""}`
+                    } className="flex items-center gap-3 px-2 py-2 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
                       <User size={18} className="text-primary" /> Dashboard
                     </Link>
                   )}

@@ -28,3 +28,34 @@ export const superAdminProtect = async (req, res, next) => {
     res.status(401).json({ message: "Not authorized, no token" });
   }
 };
+
+export const employerProtect = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret123");
+
+      if (decoded.role === "EMPLOYER" || decoded.role === "SUPER_ADMIN" || decoded.role === "ADMIN") {
+        req.user = await User.findById(decoded.id).select("-password");
+        if (!req.user) {
+          return res.status(401).json({ message: "Not authorized, user not found" });
+        }
+        return next();
+      }
+
+      res.status(401).json({ message: "Not authorized as employer" });
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({ message: "Not authorized, token failed" });
+    }
+  }
+
+  if (!token) {
+    res.status(401).json({ message: "Not authorized, no token" });
+  }
+};

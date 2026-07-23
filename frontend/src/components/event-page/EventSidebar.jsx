@@ -56,12 +56,21 @@ const EventSidebar = ({ event }) => {
             <p className="text-2xl font-bold ">Free</p>
           )}
         </div>
-        <Link 
-          to={`/event/${event._id || window.location.pathname.split('/').pop()}/attendee-details`}
-          className="bg-secondary hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all text-white py-3 px-8 rounded-xl text-[16px] font-semibold cursor-pointer text-center"
-        >
-          {event.ticketButtonText || "Register Now"}
-        </Link>
+        {event.isPast ? (
+          <button 
+            disabled
+            className="bg-gray-300 text-gray-500 py-3 px-8 rounded-xl text-[16px] font-semibold cursor-not-allowed text-center"
+          >
+            Registration Closed
+          </button>
+        ) : (
+          <Link 
+            to={`/event/${event._id || window.location.pathname.split('/').pop()}/attendee-details`}
+            className="bg-secondary hover:opacity-95 hover:shadow-lg hover:-translate-y-0.5 transition-all text-white py-3 px-8 rounded-xl text-[16px] font-semibold cursor-pointer text-center"
+          >
+            {event.ticketButtonText || "Register Now"}
+          </Link>
+        )}
       </div>
     </div>
 
@@ -86,7 +95,7 @@ const EventSidebar = ({ event }) => {
             <div className="flex gap-5">
               <div className="flex flex-col"><span className="text-xs font-semibold text-black/55">Followers</span><span className="text-[16px]">{followersCount}</span></div>
               <span className="text-black/25">|</span>
-              <div className="flex flex-col"><span className="text-xs font-semibold text-black/55">Event</span><span className="text-[16px]">{event.organizerEventsCount || 0}</span></div>
+              <div className="flex flex-col"><span className="text-xs font-semibold text-black/55">Fair</span><span className="text-[16px]">{event.organizerEventsCount || 0}</span></div>
             </div>
             <button 
               onClick={handleFollow}

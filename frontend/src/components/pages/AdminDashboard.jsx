@@ -90,7 +90,7 @@ const AdminDashboard = () => {
                 <OverviewSection events={events} />
               )}
 
-              {activeSection === "Events" && (
+              {activeSection === "Fairs" && (
                 <EventsSection 
                   events={events} 
                   setEvents={setEvents} 

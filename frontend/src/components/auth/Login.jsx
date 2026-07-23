@@ -60,8 +60,10 @@ const { login, loading } = useAuth();
         navigate('/super-admin-dashboard');
       } else if (data.user.role === "ADMIN" || data.user.role === "ORGANIZER") {
         navigate(`/admin-dashboard/${data.user.id || ""}`);
+      } else if (data.user.role === "EMPLOYER") {
+        navigate('/employer-dashboard');
       } else {
-        navigate('/events');
+        navigate('/fairs');
       }
     } catch (error) {
       setErrorMsg(error.response?.data?.message || "Login failed. Please check your credentials.");

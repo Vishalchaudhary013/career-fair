@@ -4,7 +4,7 @@ import { Mail, QrCode } from "lucide-react";
 
 const FloatingShareWidget = ({ shareUrl, eventTitle }) => {
   const url = shareUrl || (typeof window !== "undefined" ? window.location.href : "");
-  const title = eventTitle || "Event";
+  const title = eventTitle || "Fair";
   
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
@@ -18,13 +18,32 @@ const FloatingShareWidget = ({ shareUrl, eventTitle }) => {
     { name: 'Instagram', icon: <FaInstagram size={20} />, href: 'https://instagram.com', bg: 'bg-[#E1306C]' },
     { name: 'X (Twitter)', icon: <FaXTwitter size={20} />, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`, bg: 'bg-black' },
     
-    { name: 'Email', icon: <Mail size={20} />, href: `mailto:?subject=${encodedTitle}&body=Check out this event: ${encodedUrl}`, bg: 'bg-gray-600' },
+    { name: 'Email', icon: <Mail size={20} />, href: `mailto:?subject=${encodedTitle}&body=Check out this fair: ${encodedUrl}`, bg: 'bg-gray-600' },
   ];
 
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+   const downloadQRCode = async () => {
+    try {
+      const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(shareUrl)}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const safeTitle = eventTitle ? eventTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'fair';
+      a.download = `${safeTitle}-qr-code.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download QR code", error);
+      window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(shareUrl)}`, "_blank");
+    }
   };
 
   return (
@@ -55,9 +74,19 @@ const FloatingShareWidget = ({ shareUrl, eventTitle }) => {
               <img 
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodedUrl}`} 
                 alt="QR Code"
-                className="w-[150px] h-[150px] min-w-[150px] object-contain rounded-lg block" 
+                className="w-[150px] h-[150px] min-w-[150px] object-contain rounded-lg mb-3 block" 
               />
-              <p className="text-xs text-center mt-3 font-semibold text-gray-600">Scan to Share</p>
+              <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                downloadQRCode();
+              }}
+              className="bg-secondary text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              {/* <QrCode size={16} /> */}
+              Download QR Code
+            </button>
             </div>
           </div>
             

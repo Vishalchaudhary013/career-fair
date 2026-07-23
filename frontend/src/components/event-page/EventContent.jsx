@@ -45,8 +45,8 @@ const EventContent = ({ dbEvent, images }) => {
             {[thingsToKnow.slice(0, Math.ceil(thingsToKnow.length / 2)), thingsToKnow.slice(Math.ceil(thingsToKnow.length / 2))].map((col, ci) => (
               <div key={ci} className="space-y-4 text-sm font-medium text-gray-700">
                 {col.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <div className=" text-primary"><VscDebugBreakpointData size={18} /></div>
+                  <div key={i} className="flex gap-2 items-start">
+                    <div className=" text-primary mt-0.5"><VscDebugBreakpointData size={18} /></div>
                     <p>{item}</p>
                   </div>
                 ))}
@@ -58,26 +58,37 @@ const EventContent = ({ dbEvent, images }) => {
 
   
       <div id="about" className="bg-white p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow rounded-2xl mb-11 scroll-mt-20">
-        <h3 className="text-2xl mb-4 font-semibold text-primary">Event Information</h3>
+        <h3 className="text-2xl mb-4 font-semibold text-primary">Fair Information</h3>
         <style>{`
-          .event-desc-html * {
+          .fair-desc-html * {
             max-height: none !important;
             height: auto !important;
             overflow: visible !important;
             max-width: 100% !important;
           }
-          .event-desc-html table, .event-desc-html td, .event-desc-html th {
+          .fair-desc-html table, .fair-desc-html td, .fair-desc-html th {
             border: 1px solid #d1d5db !important;
           }
-          .event-desc-html ul {
+          .fair-desc-html table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          .fair-desc-html td, .fair-desc-html th {
+            padding: 0.5rem !important;
+          }
+          .fair-desc-html ul {
             list-style-type: disc !important;
             padding-left: 1.5rem !important;
             margin: 0.5rem 0 !important;
           }
-          .event-desc-html ol {
+          .fair-desc-html ol {
             list-style-type: decimal !important;
             padding-left: 1.5rem !important;
             margin: 0.5rem 0 !important;
+          }
+          .fair-desc-html a {
+            color: #2563eb !important;
+            text-decoration: underline !important;
           }
         `}</style>
         <div

@@ -61,67 +61,59 @@ const JobFairList = () => {
    * APPLY ALL FILTERS
    ----------------------------*/
   useEffect(() => {
-    let fairs = [...jobFairs];
+    let events = [...jobFairs];
 
-    // FILTER: Search by Name
-    fairs = fairs.filter((fair) =>
-      fair.jobFairName.toLowerCase().includes(searchName.toLowerCase())
-    );
+    // FILTER: Search by Name events = events.filter((event) =>
+      event.jobFairName.toLowerCase().includes(searchName.toLowerCase())
+  
 
     // FILTER: Fair Type Chip
-    if (selectedFairType !== "All") {
-      fairs = fairs.filter(
-        (fair) => fair.fairType?.trim() === selectedFairType
+    if (selectedFairType !== "All") { events = events.filter(
+        (event) => event.fairType?.trim() === selectedFairType
       );
     }
 
     // FILTER: Location
-    if (searchLocation.trim() !== "") {
-      fairs = fairs.filter((fair) =>
-        fair.venue?.city?.toLowerCase().includes(searchLocation.toLowerCase())
+    if (searchLocation.trim() !== "") { events = events.filter((event) =>
+        event.venue?.city?.toLowerCase().includes(searchLocation.toLowerCase())
       );
     }
 
     // FILTER: Month
-    if (searchMonth) {
-      fairs = fairs.filter(
-        (fair) =>
-          new Date(fair.jobFairStart).getMonth() + 1 === parseInt(searchMonth)
+    if (searchMonth) { events = events.filter(
+        (event) =>
+          new Date(event.jobFairStart).getMonth() + 1 === parseInt(searchMonth)
       );
     }
 
     // FILTER: Year
-    if (searchYear) {
-      fairs = fairs.filter(
-        (fair) =>
-          new Date(fair.jobFairStart).getFullYear() === parseInt(searchYear)
+    if (searchYear) { events = events.filter(
+        (event) =>
+          new Date(event.jobFairStart).getFullYear() === parseInt(searchYear)
       );
     }
 
     // ---------------------------
     // TABS LOGIC (FINAL)
     // ---------------------------
-    if (activeTab === "upcoming") {
-      fairs = fairs.filter(
-        (fair) =>
-          !isRegistrationClosed(fair.registrationDateTime) && // registration open
-          !isPastEvent(fair.jobFairEnd) // event not ended
+    if (activeTab === "upcoming") { events = events.filter(
+        (event) =>
+          !isRegistrationClosed(event.registrationDateTime) && // registration open
+          !isPastEvent(event.jobFairEnd) // fair not ended
       );
     }
 
-    if (activeTab === "registrationClosed") {
-      fairs = fairs.filter(
-        (fair) =>
-          isRegistrationClosed(fair.registrationDateTime) && // registration closed
-          !isPastEvent(fair.jobFairEnd) // event NOT ended
+    if (activeTab === "registrationClosed") { events = events.filter(
+        (event) =>
+          isRegistrationClosed(event.registrationDateTime) && // registration closed
+          !isPastEvent(event.jobFairEnd) // fair NOT ended
       );
     }
 
-    if (activeTab === "past") {
-      fairs = fairs.filter((fair) => isPastEvent(fair.jobFairEnd)); // event ended
+    if (activeTab === "past") { events = events.filter((event) => isPastEvent(event.jobFairEnd)); // fair ended
     }
 
-    setFilteredFairs(fairs);
+    setFilteredFairs(events);
     setCurrentPage(1);
   }, [
     searchName,
@@ -216,7 +208,7 @@ const JobFairList = () => {
       {[
         { key: "upcoming", label: "Upcoming" },
         { key: "registrationClosed", label: "Registration Closed" },
-        { key: "past", label: "Past Events" },
+        { key: "past", label: "Past Fairs" },
       ].map((tab) => (
         <button
           key={tab.key}

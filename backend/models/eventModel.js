@@ -160,6 +160,14 @@ const hiringPartnerSchema = new mongoose.Schema({
     trim: true,
     default: "",
   },
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  postedByEmail: {
+    type: String,
+    trim: true,
+  },
 });
 
 const eligibilitySchema = new mongoose.Schema({

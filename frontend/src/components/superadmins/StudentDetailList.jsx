@@ -306,7 +306,7 @@ const handleDownloadExcel = () => {
     "General Professional Role",
     "Hotel Manager",
     "Front Office Executive",
-    "Event Coordinator",
+    "Fair Coordinator",
     "Frontend Developer",
     "Backend Developer",
     "Full Stack Developer",

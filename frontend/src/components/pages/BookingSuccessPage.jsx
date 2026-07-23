@@ -6,7 +6,7 @@ import { formatDate, formatTime } from "../../utils/dateFormatter";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 
-const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Event";
+const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Fair";
 const getEventDate = (event) => event?.basicInfo?.startDate || event?.startDate;
 const getEventTime = (event) => {
   if (event?.basicInfo?.startTime) return event.basicInfo.startTime;
@@ -72,7 +72,7 @@ const BookingSuccessPage = () => {
   if (loading) return <div className="flex justify-center mt-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
   if (error || !booking) return <div className="text-center mt-32 text-red-500">{error || "Booking not found"}</div>;
 
-  const event = booking.event;
+  const event = booking.fair;
   const title = getEventTitle(event);
   const startDate = formatDate(getEventDate(event)) || "TBA";
   const startTime = formatTime(getEventTime(event)) || "TBA";
@@ -89,25 +89,25 @@ const BookingSuccessPage = () => {
       doc.setFont("Helvetica", "normal");
       doc.setFontSize(11);
 
-      // TOP LEFT -> Ticket ID
+      
       doc.text(`Ticket ID : ${bookingId}`, marginX, y);
 
-      // TOP RIGHT -> Created At
+      
       const createdDate = formatDate(booking.createdAt || new Date());
       doc.text(`Created At : ${createdDate}`, pageWidth - marginX, y, { align: "right" });
 
-      // QR CODE placement (Top Right below Created At)
+      
       if (qrCodeDataUrl) {
         doc.addImage(qrCodeDataUrl, 'PNG', pageWidth - marginX - 30, y + 5, 30, 30);
       }
 
-      // TITLE "HALL TICKET"
+      
       y += 15;
       doc.setFontSize(18);
       doc.setFont("Helvetica", "bold");
       doc.text("HALL TICKET", pageWidth / 2, y, { align: "center" });
 
-      // FAIR NAME
+      
       y += 12;
       doc.setFontSize(13);
       doc.setFont("Helvetica", "bold");
@@ -116,19 +116,19 @@ const BookingSuccessPage = () => {
       
       y += fairLines.length * 7 + 5;
 
-      // DATE OF EVENT & ENTRY TIMING
+      
       doc.setFontSize(11);
       doc.setFont("Helvetica", "normal");
-      doc.text(`Date Of Event : ${startDate}`, marginX, y);
+      doc.text(`Date Of Fair : ${startDate}`, marginX, y);
       doc.text(`Entry Timing : ${startTime}`, pageWidth - marginX, y, { align: "right" });
 
-      // CANDIDATE DETAILS
+      
       y += 15;
       const fullName = getAttendeeName();
       const gender = booking.answers?.Gender || booking.answers?.gender || "N/A";
       const email = booking.email || "N/A";
       
-      // Attempt to find phone number from various potential question keys
+      
       const phoneKeys = ["Phone Number", "phone", "mobile", "contact"];
       let mobile = "N/A";
       if (booking.answers) {
@@ -136,7 +136,7 @@ const BookingSuccessPage = () => {
         if (foundKey) mobile = booking.answers[foundKey];
       }
 
-      // Attempt to find highest qualification
+      
       const eduKeys = ["Highest Level of Education", "qualification", "education", "degree"];
       let qualification = "N/A";
       if (booking.answers) {
@@ -151,20 +151,20 @@ const BookingSuccessPage = () => {
       const col2X = pageWidth / 2 + 10;
       const rowGap = 8;
 
-      // Row 1
+      
       doc.text(`1. Candidate Name : ${fullName}`, col1X, y);
       doc.text(`2. Gender : ${gender}`, col2X, y);
 
-      // Row 2
+    
       y += rowGap;
       doc.text(`3. Email ID : ${email}`, col1X, y);
       doc.text(`4. Contact No. : ${mobile}`, col2X, y);
 
-      // Row 3
+      
       y += rowGap;
       doc.text(`5. Highest Qualification : ${qualificationLine}`, col1X, y);
 
-      // APPLYING FOR BOX
+      
       y += 14;
       const box1X = marginX;
       const box1Y = y;
@@ -183,7 +183,7 @@ const BookingSuccessPage = () => {
       doc.text("3. ___________________________", box1X + 4, box1Y + 24);
       doc.text("4. ___________________________", box1X + box1Width / 2 + 4, box1Y + 24);
 
-      // IMPORTANT INSTRUCTIONS BOX
+  
       const instructions = [
         "1. The candidate must carry this Hall Ticket to the venue without fail. Entry to the premises shall be strictly",
         "   prohibited without a valid Hall Ticket.",
@@ -247,11 +247,11 @@ const BookingSuccessPage = () => {
   const getAttendeeName = () => {
     if (!booking) return "Attendee";
     
-    // Check if answers exist
+    
     if (booking.answers) {
       if (booking.answers.q_name) return booking.answers.q_name;
       
-      const event = booking.event;
+      const event = booking.fair;
       const nameQuestion = event?.questions?.find(q => q.title.toLowerCase().includes("name") && !q.title.toLowerCase().includes("company name"));
       if (nameQuestion) {
         const qId = nameQuestion.id || nameQuestion._id;
@@ -264,7 +264,7 @@ const BookingSuccessPage = () => {
       if (nameKey && booking.answers[nameKey]) return booking.answers[nameKey];
     }
     
-    // Fallback to email prefix
+    
     if (booking.email) {
       return booking.email.split("@")[0];
     }
@@ -274,30 +274,27 @@ const BookingSuccessPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-20">
-      {/* Top Success Banner */}
+    
      
 
       <div className="max-w-md mx-auto w-full px-4 py-12 flex flex-col items-center">
         
-        {/* Ticket Receipt (Hero Card) */}
+      
         <div className="w-full bg-white border border-slate-200/60 rounded-2xl shadow-xl p-8 relative overflow-hidden mb-8">
           
-          {/* Left Cutout */}
-          {/* */}
-          {/* Ticket Header */}
           <div className="text-center mb-6">
             <span className="text-4xl inline-block animate-bounce mb-2" role="img" aria-label="party popper">🎉</span>
             <h2 className="text-2xl font-bold text-primary">Thank you!</h2>
             <p className="text-sm text-slate-500 mt-1">Your ticket has been issued successfully</p>
             
-            {/* Project Success Tag Message */}
+          
            
           </div>
 
-          {/* Dashed Line */}
+        
           <div className="border-t border-dashed border-slate-200 my-6 -mx-8" />
 
-          {/* Details Section */}
+  
           <div className="space-y-4 text-left">
             <div className="flex justify-between items-start">
               <div>
@@ -317,13 +314,13 @@ const BookingSuccessPage = () => {
               <span className="text-[14px] font-semibold text-slate-700 mt-0.5 block">{startDate} • {startTime}</span>
             </div>
 
-            {/* Event Name */}
+          
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Event</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Fair</span>
               <span className="text-[14px] font-bold text-primary mt-0.5 block line-clamp-1">{title}</span>
             </div>
 
-            {/* Attendee Info Bar */}
+            
             <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3 mt-4">
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-100 shrink-0">
                 {booking.totalPrice > 0 ? (
@@ -346,10 +343,10 @@ const BookingSuccessPage = () => {
             </div>
           </div>
 
-          {/* Second Dashed Line */}
+        
           <div className="border-t border-dashed border-slate-200 my-6 -mx-8" />
 
-          {/* QR Code Section */}
+    
           <div className="flex flex-col items-center justify-center py-4 w-full">
             {qrCodeDataUrl ? (
               <img src={qrCodeDataUrl} alt="QR Code" className="w-[100px] h-[100px]" />
@@ -359,7 +356,7 @@ const BookingSuccessPage = () => {
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-3">Scan at Entry</span>
           </div>
 
-          {/* Scalloped Bottom Edge Circles */}
+        
           <div className="absolute left-0 right-0 -bottom-2 flex justify-between px-1 pointer-events-none">
             {Array.from({ length: 15 }).map((_, i) => (
               <div key={i} className="w-4 h-4 rounded-full bg-slate-50 border border-slate-200/40" />
@@ -367,7 +364,6 @@ const BookingSuccessPage = () => {
           </div>
         </div>
 
-        {/* Action Buttons below Receipt Card */}
         <div className="w-full flex flex-col gap-3">
           <button 
             onClick={downloadTicket}
@@ -387,7 +383,7 @@ const BookingSuccessPage = () => {
 
       </div>
 
-      {/* Hidden Ticket for PDF generation */}
+
       <div id="printable-ticket" style={{ position: "absolute", zIndex: -10, top: 0, left: 0, opacity: 0.01, pointerEvents: "none" }}>
         <div ref={ticketRef} className="w-200 bg-white p-8 border border-gray-200">
           <div className="flex justify-between items-start border-b border-gray-200 pb-6 mb-6">

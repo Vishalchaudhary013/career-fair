@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-// Use a fixed key from env or a fallback for development. Must be 32 bytes (256 bits).
+
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "12345678901234567890123456789012"; 
 const IV_LENGTH = 16; 
 

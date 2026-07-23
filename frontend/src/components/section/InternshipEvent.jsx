@@ -18,10 +18,10 @@ const InternshipEvent = ({ events = [] }) => {
                         </Link>
                     </div>
 
-                    <div className="flex overflow-x-auto gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 snap-x snap-mandatory hide-scrollbar">
+                    <div className="flex overflow-x-auto gap-6 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 snap-x snap-mandatory hide-scrollbar">
                         {events.length > 0 ? (
                             events.map(event => (
-                                <div key={event._id} className="w-[280px] sm:w-[320px] md:w-auto shrink-0 snap-center md:snap-align-none">
+                                <div key={event._id} className="w-[340px] sm:w-[380px] md:w-auto shrink-0 snap-center md:snap-align-none">
                                     <EventFairsCard event={event} />
                                 </div>
                             ))

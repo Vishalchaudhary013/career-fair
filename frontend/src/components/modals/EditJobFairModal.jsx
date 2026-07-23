@@ -1,5 +1,5 @@
 /**
- * Function is used to edit the job fair. It includes the modal and is opened by clicking on the dit button.
+ * Function is used to edit the job event. It includes the modal and is opened by clicking on the dit button.
  */
 import  { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
@@ -236,7 +236,7 @@ const fetchJobFair = async () => {
     /**
     * Function is used to handle the job card changes when new job card is added.
     */
-    const handleJobCardChange = (index, event) => {
+    const handleJobCardChange = (index, fair) => {
         const { name, value, files } = event.target;
         const updatedJobCards = [...jobCards];
         if (updatedJobCards[index]) {
@@ -258,7 +258,7 @@ const fetchJobFair = async () => {
     /**
     * Function is used to chnage the already added job card components.
     */
-    const handleOldJobCardChange = (index, event) => {
+    const handleOldJobCardChange = (index, fair) => {
         const { name, value, files } = event.target;
         const updatedFairJobCards = [...formData.fairJobCards];
 
@@ -432,10 +432,10 @@ const handleSubmit = async (e) => {
     }; 
 
      /**
-    * Function is used to display the modal when any event (API is hit)
+    * Function is used to display the modal when any fair (API is hit)
     */
      /**
-    * Function is used to display the modal when any event (API is hit)
+    * Function is used to display the modal when any fair (API is hit)
     */
     const renderModal = () => {
         if (!showModal) return null;

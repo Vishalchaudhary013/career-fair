@@ -30,7 +30,7 @@ const CreateEventPage = () => {
   const isEditing = !!eventId;
   const user = { hostName: "Admin", userName: "Admin" };
 
-  // ── Choice Screen ──
+
   const [eventType, setEventType] = useState(isEditing ? "in-person" : null);
 
   const handleSelectEventType = (type) => {
@@ -46,11 +46,9 @@ const CreateEventPage = () => {
     }
   };
 
-  // ── Navigation ──
   const [activeTab, setActiveTab] = useState("basic-information");
   const [maxReachedStep, setMaxReachedStep] = useState(isEditing ? allItems.length - 1 : 0);
 
-  // ── Basic Info ──
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState("public");
   const [startDate, setStartDate] = useState(DATE_OPTS[1]?.value ?? DATE_OPTS[0].value);
@@ -58,7 +56,6 @@ const CreateEventPage = () => {
   const [endDate, setEndDate] = useState(DATE_OPTS[1]?.value ?? DATE_OPTS[0].value);
   const [endTime, setEndTime] = useState("18:00");
 
-  // ── Location ──
   const [venueOption, setVenueOption] = useState("address");
   const [venueName, setVenueName] = useState("");
   const [street1, setStreet1] = useState("");
@@ -72,7 +69,6 @@ const CreateEventPage = () => {
   const resetLocation = () => { setVenueName(""); setStreet1(""); setStreet2(""); setCity(""); setPinCode(""); setNearestBusStop(""); setNearestAirport(""); setNearestTrainStation(""); setLocationLink(""); };
 
 
-  // ── Event Information ──
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [fairType, setFairType] = useState("");
@@ -118,12 +114,10 @@ const CreateEventPage = () => {
   const updateFaq = (i, field, val) => setFaqs((f) => f.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
   const toggleFaq = (i) => setFaqs((f) => f.map((item, idx) => idx === i ? { ...item, open: !item.open } : item));
 
-  // ── Banner & Logo ──
   const [bannerUrl, setBannerUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [companyListDocumentUrl, setCompanyListDocumentUrl] = useState("");
 
-  // ── Tickets ──
   const [tickets, setTickets] = useState([]);
   const [ticketButtonText, setTicketButtonText] = useState("Book Tickets");
   const [showTicketForm, setShowTicketForm] = useState(false);
@@ -153,7 +147,7 @@ const CreateEventPage = () => {
   const editTicket = (i) => { const t = tickets[i]; setTicketName(t.name); setTicketCategory(t.category); setTicketPrice(t.price); setTicketCurrency(t.currency || "INR"); setTotalQuantity(t.totalQuantity); setMinBooking(t.minBooking); setMaxBooking(t.maxBooking); setTicketStartDate(t.startDate); setTicketStartTime(t.startTime); setTicketEndDate(t.endDate); setTicketEndTime(t.endTime); setEditingTicketIndex(i); setShowTicketForm(true); };
   const deleteTicket = (i) => setTickets((prev) => prev.filter((_, idx) => idx !== i));
 
-  // ── Questions ──
+ 
   const [addedQuestions, setAddedQuestions] = useState([
     { id: "q_name",  title: "Name",     type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: false },
     { id: "q_email", title: "Email ID", type: "Text", status: "Mandatory", tickets: "All Tickets", isDefault: false },
@@ -174,7 +168,7 @@ const CreateEventPage = () => {
       : stepMeta[activeTab].label
   } : null;
 
-  // ── Pre-fill form when editing ──
+  
   useEffect(() => {
     if (!isEditing) return;
     const fetchEvent = async () => {
@@ -310,8 +304,8 @@ const CreateEventPage = () => {
           }
         }
       } catch (err) {
-        console.error("Failed to load event for editing:", err);
-        alert("Failed to load event data.");
+        console.error("Failed to load fair for editing:", err);
+        alert("Failed to load fair data.");
       }
     };
     fetchEvent();
@@ -471,7 +465,7 @@ const CreateEventPage = () => {
       navigate("/super-admin-dashboard");
     } catch (error) {
       console.error(error);
-      alert("Failed to create fair. Please check the form and try again.");
+      alert("Failed to create event. Please check the form and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -497,7 +491,7 @@ const CreateEventPage = () => {
       <div className="min-h-screen bg-[#F7F5FC] flex flex-col pt-[60px]">
         <CreateEventHeader />
         <div className="flex-1 flex flex-col justify-center items-center relative py-12 px-6">
-          {/* Close Button */}
+          
           <button
             onClick={() => navigate(-1)}
             className="absolute top-6 right-8 w-12 h-12 bg-primary hover:bg-primary/90 text-white flex items-center justify-center rounded-full shadow-md hover:shadow-lg transition cursor-pointer z-10"
@@ -505,7 +499,7 @@ const CreateEventPage = () => {
             <X size={24} />
           </button>
 
-          {/* Header Section */}
+    
           <div className="text-center mb-16 animate-in fade-in slide-in-from-top-4 duration-300">
             <h1 className="text-4xl md:text-5xl font-semibold  text-primary mb-3">
               Hi {user?.hostName || user?.userName || "Organizer"}!
@@ -515,9 +509,9 @@ const CreateEventPage = () => {
             </p>
           </div>
 
-          {/* Cards container */}
+      
           <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch max-w-5xl w-full px-4 animate-in fade-in slide-in-from-bottom-4 duration-300 delay-100">
-            {/* Virtual Event Card */}
+          
             <div 
               onClick={() => handleSelectEventType("virtual")}
               className="bg-white border border-gray-100 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_15px_40px_rgba(139,92,246,0.12)] border-gray-200/50 flex flex-col items-center text-center w-full md:w-[380px] transition-all duration-300 transform hover:-translate-y-1.5 cursor-pointer group"
@@ -531,7 +525,7 @@ const CreateEventPage = () => {
               </div>
               <h2 className="text-xl font-bold text-primary mb-3  transition-colors">Virtual Fair</h2>
               <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8 flex-1">
-                Host single and multi-track events including webinars, conferences and virtual exhibitions
+                Host single and multi-track fairs including webinars, conferences and virtual exhibitions
               </p>
               <button 
                 onClick={(e) => { e.stopPropagation(); handleSelectEventType("virtual"); }}
@@ -541,7 +535,7 @@ const CreateEventPage = () => {
               </button>
             </div>
 
-            {/* In-Person Event Card */}
+            {/* In-Person Fair Card */}
             <div 
               onClick={() => handleSelectEventType("in-person")}
               className="bg-white border border-gray-100 rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.01)] hover:shadow-[0_15px_40px_rgba(139,92,246,0.12)] border-gray-200/50 flex flex-col items-center text-center w-full md:w-[380px] transition-all duration-300 transform hover:-translate-y-1.5 cursor-pointer group"
@@ -656,13 +650,13 @@ const CreateEventPage = () => {
 
           {/* Sticky Footer */}
           <footer className="shrink-0 bg-[#eeeef8] border-t border-[#d4d4ec] px-4 sm:px-10 py-4 flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-700">({currentStep?.label ?? "Add Event Details"})</span>
+            <span className="text-sm font-semibold text-gray-700">({currentStep?.label ?? "Add Fair Details"})</span>
             <div className="flex items-center gap-3">
               {currentStep?.step > 1 && (
                 <button onClick={handleBack} className="border border-primary text-primary text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-secondary/5 transition cursor-pointer">Back</button>
               )}
               <button onClick={handleNext} disabled={isSubmitting} className="bg-secondary hover:bg-secondary/90 disabled:bg-secondary/70 text-white text-sm font-semibold px-7 py-2.5 rounded-lg transition shadow-sm cursor-pointer">
-                {isSubmitting ? "Publishing..." : activeTab === "basic-information" ? "Save & Next" : activeTab === "question" ? "Publish Event" : "Next"}
+                {isSubmitting ? "Publishing..." : activeTab === "basic-information" ? "Save & Next" : activeTab === "question" ? "Publish Fair" : "Next"}
               </button>
             </div>
           </footer>

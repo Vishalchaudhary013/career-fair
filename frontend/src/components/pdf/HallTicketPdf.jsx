@@ -118,7 +118,7 @@ function HallTicketPdf() {
       jobFairData.jobFairEnd
     );
 
-    doc.text(`Date Of Event : ${eventRange}`, marginX, y);
+    doc.text(`Date Of Fair : ${eventRange}`, marginX, y);
     doc.text(
       `Entry Timing : ${timing}`,
       pageWidth - marginX,

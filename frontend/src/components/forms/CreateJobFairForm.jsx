@@ -1211,7 +1211,7 @@ export default CreateJobFairForm;
 
 
 // /**
-//  * Function is used to create the Job fairs. It contains the details of job fairs.
+//  * Function is used to create the Job events. It contains the details of job events.
 //  */
 // import { useState } from "react";
 // import { useParams } from "react-router-dom";
@@ -1416,7 +1416,7 @@ export default CreateJobFairForm;
 //   /**
 //    * Function is used to create the handle job card change .
 //    */
-//   const handleJobCardChange = (index, event) => {
+//   const handleJobCardChange = (index, fair) => {
 //     const { name, value, files } = event.target;
 //     const updatedJobCards = [...jobCards];
 //     if (files && files[0]) {
@@ -1527,7 +1527,7 @@ export default CreateJobFairForm;
 //   };
 
 //   /**
-//    * Function is used to display the modal when any event (API is hit)
+//    * Function is used to display the modal when any fair (API is hit)
 //    */
 //   const renderModal = () => (
 //     <Modal show={showModal} onHide={handleCloseModal}>

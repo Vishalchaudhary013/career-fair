@@ -49,7 +49,7 @@ const EventCalendarPage = () => {
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null); // { date, events }
+  const [selectedDay, setSelectedDay] = useState(null); // { date, fairs }
   const [view, setView] = useState("month"); // "month" | "list"
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const EventCalendarPage = () => {
     fetch();
   }, []);
 
-  // Map of "YYYY-MM-DD" → events[]
+  // Map of "YYYY-MM-DD" → fairs[]
   const eventsByDate = useMemo(() => {
     const map = {};
     events.forEach((event, idx) => {
@@ -119,20 +119,38 @@ const EventCalendarPage = () => {
     return days;
   }, [year, month]);
 
+  const currentYear = today.getFullYear();
+  const years = Array.from({ length: 16 }, (_, i) => currentYear - 5 + i); // from currentYear - 5 to currentYear + 10
+
   const prevMonth = () => {
-    if (month === 0) { setYear(y => y - 1); setMonth(11); }
-    else setMonth(m => m - 1);
+    setMonth((m) => {
+      if (m === 0) {
+        setYear((y) => y - 1);
+        return 11;
+      }
+      return m - 1;
+    });
   };
+
   const nextMonth = () => {
-    if (month === 11) { setYear(y => y + 1); setMonth(0); }
-    else setMonth(m => m + 1);
+    setMonth((m) => {
+      if (m === 11) {
+        setYear((y) => y + 1);
+        return 0;
+      }
+      return m + 1;
+    });
   };
-  const goToday = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); };
+
+  const goToday = () => {
+    setYear(today.getFullYear());
+    setMonth(today.getMonth());
+  };
 
   const toKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const isToday = (d) => toKey(d) === toKey(today);
 
-  // List view — all events this month sorted by date
+  // List view — all fairs this month sorted by date
   const monthEvents = useMemo(() => {
     return events
       .filter(e => {
@@ -153,13 +171,48 @@ const EventCalendarPage = () => {
 
         {/*  Top Bar  */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-primary">Event Calendar</h1>
-            <p className="text-gray-500 text-sm mt-1">Browse all events by date</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-primary">Fair Calendar</h1>
+              <p className="text-gray-500 text-sm mt-1">Browse all fairs by date</p>
+            </div>
+
+            {/* Select Dropdown Filters */}
+            
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* View toggle */}
+
+            <div className="flex items-center gap-2 mt-2 sm:mt-0">
+
+              <div className="bg-white border border-gray-200 rounded-lg px-1.5 py-2 text-sm font-semibold text-gray-700 shadow-sm flex items-center gap-1.5 cursor-pointer">
+                <Calendar size={18}/>
+              <select
+
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+                className=" focus:outline-none focus:border-primary cursor-pointer"
+              >
+                {MONTHS.map((mName, idx) => (
+                  <option key={idx} value={idx}>{mName}</option>
+                ))}
+              </select>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg px-1.5 py-2 text-sm font-semibold text-gray-700 shadow-sm flex items-center gap-1.5 cursor-pointer">
+                 <Calendar size={18}/>
+                <select
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="focus:outline-none focus:border-primary"
+              >
+                {years.map((yVal) => (
+                  <option key={yVal} value={yVal}>{yVal}</option>
+                ))}
+              </select>
+              </div>
+            </div>
             <div className="flex border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
               <button
                 onClick={() => setView("month")}
@@ -176,7 +229,7 @@ const EventCalendarPage = () => {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1">
+            {/* <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1">
               <button onClick={prevMonth} className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer">
                 <ChevronLeft size={18} className="text-gray-600" />
               </button>
@@ -186,12 +239,7 @@ const EventCalendarPage = () => {
               <button onClick={nextMonth} className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer">
                 <ChevronRight size={18} className="text-gray-600" />
               </button>
-            </div>
-
-            {/* Month / Year label */}
-            <span className="text-lg font-bold text-gray-800 min-w-[180px] text-center">
-              {MONTHS[month]} {year}
-            </span>
+            </div> */}
           </div>
         </div>
 
@@ -205,13 +253,13 @@ const EventCalendarPage = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 border-b border-gray-100">
+            {/* <div className="grid grid-cols-7 border-b border-gray-100">
               {DAYS.map(day => (
                 <div key={day} className="py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
                   {day}
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* Day cells — 6 rows × 7 cols */}
             <div className="grid grid-cols-7 divide-x divide-y divide-gray-100">
@@ -223,7 +271,7 @@ const EventCalendarPage = () => {
                 return (
                   <div
                     key={i}
-                    onClick={() => dayEvents.length > 0 && setSelectedDay({ date, events: dayEvents })}
+                    onClick={() => dayEvents.length > 0 && setSelectedDay({ date, fairs: dayEvents })}
                     className={`min-h-[110px] p-2 flex flex-col ${current ? "bg-white" : "bg-gray-50/60"} ${dayEvents.length > 0 ? "cursor-pointer hover:bg-blue-50/30 transition-colors" : ""}`}
                   >
                     {/* Date number */}
@@ -231,7 +279,7 @@ const EventCalendarPage = () => {
                       {date.getDate()}
                     </span>
 
-                    {/* Event pills */}
+                    {/* Fair pills */}
                     <div className="flex flex-col gap-1 flex-1">
                       {dayEvents.slice(0, 2).map((event, ei) => (
                         <div
@@ -260,7 +308,7 @@ const EventCalendarPage = () => {
             {monthEvents.length === 0 ? (
               <div className="text-center py-20 text-gray-400">
                 <Calendar size={48} className="mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">No events in {MONTHS[month]} {year}</p>
+                <p className="text-lg font-medium">No fairs in {MONTHS[month]} {year}</p>
               </div>
             ) : monthEvents.map((event, idx) => {
               const isOnline = event.venue?.venueOption === "online";
@@ -352,9 +400,9 @@ const EventCalendarPage = () => {
               </button>
             </div>
 
-            {/* Events list */}
+            {/* Fairs list */}
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
-              {selectedDay.events.map((event) => {
+              {selectedDay.fairs.map((event) => {
                 const isOnline = event.venue?.venueOption === "online";
                 const location = isOnline ? "Online" : (event.venue?.venueName || event.venue?.city || "Location TBD");
                 let imageUrl = "";

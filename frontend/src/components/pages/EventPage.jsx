@@ -53,15 +53,24 @@ const EventPage = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    // mock target date for registration (e.g. 5 days from now)
-    const target = new Date();
-    target.setDate(target.getDate() + 5);
-    
-    const interval = setInterval(() => {
+    if (!dbEvent) return;
+
+    const registrationDeadline = dbEvent.registrationDeadline || dbEvent.startDate;
+    if (!registrationDeadline) return;
+
+    const target = new Date(registrationDeadline);
+    const isEventPast = target < new Date();
+
+    if (isEventPast) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
+    const updateTimer = () => {
       const now = new Date();
       const diff = target - now;
       if (diff <= 0) {
-        clearInterval(interval);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       } else {
         setTimeLeft({
           days: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -70,13 +79,16 @@ const EventPage = () => {
           seconds: Math.floor((diff / 1000) % 60)
         });
       }
-    }, 1000);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dbEvent]);
 
   useEffect(() => {
     if (!id) {
-      setError("No event ID provided in the URL.");
+      setError("No fair ID provided in the URL.");
       setLoading(false);
       return;
     }
@@ -108,7 +120,7 @@ const EventPage = () => {
 
   if (loading) return <div className="flex justify-center mt-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
   if (error) return <div className="text-center mt-32 text-red-500">{error}</div>;
-  if (!dbEvent) return <div className="text-center mt-32">Event not found.</div>;
+  if (!dbEvent) return <div className="text-center mt-32">Fair not found.</div>;
 
   // Transform backend format to UI format
   const startDateStr = dbEvent.startDate || "";
@@ -135,6 +147,12 @@ const EventPage = () => {
 
   const priceStr = dbEvent.tickets && dbEvent.tickets.length > 0 ? Math.min(...dbEvent.tickets.map(t => t.price)) : 0;
   
+  const isPast = dbEvent.endDate 
+    ? new Date(dbEvent.endDate) < new Date() 
+    : dbEvent.startDate 
+      ? new Date(dbEvent.startDate) < new Date() 
+      : false;
+
   const EVENT = {
     title: dbEvent.fairName || "Event",
     category: dbEvent.category || "General",
@@ -153,6 +171,7 @@ const EventPage = () => {
     isFollowing: user ? (dbEvent.organizer?.followers || []).includes(user._id) : false,
     organizerEventsCount: 0,
     ticketButtonText: dbEvent.tickets?.[0]?.ticketButtonText || "Book Tickets Now",
+    isPast: isPast,
   };
 
   // Extract images and videos
@@ -199,6 +218,7 @@ const EventPage = () => {
           fairName={dbEvent.fairName}
           eventId={id}
           isOnline={isOnline}
+          isPast={isPast}
           companyListDocument={dbEvent.companyListDocument}
           contact={dbEvent.contact}
         />

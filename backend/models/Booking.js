@@ -23,7 +23,7 @@ const bookingSchema = new mongoose.Schema({
   totalPrice: { type: Number, default: 0 },
   totalItems: { type: Number, default: 1 },
   answers: {
-    type: mongoose.Schema.Types.Mixed, // flexible object for form answers
+    type: mongoose.Schema.Types.Mixed, 
     default: {}
   },
   qrCodeId: {

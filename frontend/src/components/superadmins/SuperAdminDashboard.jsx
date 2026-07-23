@@ -466,7 +466,7 @@ const tabs = [
   { key: "all", label: "All" },
   { key: "upcoming", label: "Upcoming" },
   { key: "registrationClosed", label: "Registration Closed" },
-  { key: "past", label: "Past Events" },
+  { key: "past", label: "Past Fairs" },
 ];
 
 // FILTER STATES
@@ -563,7 +563,7 @@ const renderManageJobFairs = () => {
             <thead className="bg-[#f8f9fa] border-b border-gray-200">
               <tr>
                 <th className="px-4 py-3 font-semibold text-gray-700 text-sm">Sr No.</th>
-                <th className="px-4 py-3 font-semibold text-gray-700 text-sm">Event Name</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 text-sm">Fair Name</th>
                 <th className="px-4 py-3 font-semibold text-gray-700 text-sm">Fair Type</th>
                 <th className="px-4 py-3 font-semibold text-gray-700 text-sm">State</th>
                 <th className="px-4 py-3 font-semibold text-gray-700 text-sm">Dates</th>

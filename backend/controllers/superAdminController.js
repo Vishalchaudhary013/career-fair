@@ -114,6 +114,7 @@ export const impersonateUser = async (req, res) => {
       userName: user.userName,
       hostName: user.hostName,
       workEmail: user.workEmail,
+      role: user.role,
       token: generateToken(user._id),
       impersonated: true
     });
@@ -176,7 +177,6 @@ export const updateSuperAdminProfile = async (req, res) => {
       return res.status(404).json({ message: "Super Admin not found" });
     }
 
-    // Verify current password
     if (!currentPassword) {
       return res.status(400).json({ message: "Current password is required" });
     }
@@ -186,9 +186,7 @@ export const updateSuperAdminProfile = async (req, res) => {
       return res.status(400).json({ message: "Invalid current password" });
     }
 
-    // Update email if provided
     if (email && email !== user.email) {
-      // Check if email is already taken
       const emailExists = await User.findOne({ email });
       if (emailExists) {
         return res.status(400).json({ message: "Email is already taken" });
@@ -196,7 +194,6 @@ export const updateSuperAdminProfile = async (req, res) => {
       user.email = email;
     }
 
-    // Update password if provided
     if (newPassword) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);

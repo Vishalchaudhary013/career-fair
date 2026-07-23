@@ -2,14 +2,12 @@ const mongoose = require("mongoose");
 
 const studentDetailSchema = new mongoose.Schema(
   {
-    // Job Fair Reference
     jobFairId: {
       type: String,
       required: true,
       ref: "JobFair",
     },
 
-    // Personal Details
     personalDetails: {
       fullName: {
         type: String,
@@ -41,7 +39,6 @@ const studentDetailSchema = new mongoose.Schema(
       },
     },
 
-    // Academic Details
     academicDetails: {
       highestQualification: {
         type: String,
@@ -71,11 +68,10 @@ const studentDetailSchema = new mongoose.Schema(
       },
     },
 
-    // Career Preferences
     careerPreferences: {
       preferredIndustry: {
         type: [String],
-        required: true, // still required, but no limit
+        required: true,
       },
       desiredJobRole: {
         type: [String],
@@ -83,7 +79,7 @@ const studentDetailSchema = new mongoose.Schema(
       },
 
       preferredLocations: {
-        type: [String], // multiple inputs
+        type: [String], 
         required: true,
       },
       willingToRelocate: {
@@ -93,18 +89,18 @@ const studentDetailSchema = new mongoose.Schema(
       },
     },
 
-    // Documents & Links
+
     documentsAndLinks: {
       resume: {
         type: String,
-        required: true, // resume is mandatory
+        required: true, 
       },
 
       linkedinProfile: {
         type: String,
         validate: {
           validator: function (v) {
-            if (!v) return true; // allow empty
+            if (!v) return true; 
             return /^(https?:\/\/)?(www\.)?linkedin\.com(\/.*)?$/.test(v);
           },
           message: "Please enter a valid LinkedIn URL",
@@ -125,15 +121,15 @@ const studentDetailSchema = new mongoose.Schema(
       },
 
       registrationPDF: {
-        type: String, // path to generated registration summary PDF
-        default: "", // in case PDF not generated yet
+        type: String, 
+        default: "", 
       },
     },
 
-    // Declaration & Consent
+    
     declarationAndConsent: {
       heardFrom: {
-        type: [String], // multiple checkbox options
+        type: [String], 
         enum: [
           "Social Media (LinkedIn/Instagram/etc.)",
           "College Placement Cell",
@@ -144,7 +140,7 @@ const studentDetailSchema = new mongoose.Schema(
         required: true,
       },
       otherSource: {
-        type: String, // optional input if "Others" selected
+        type: String, 
       },
       attendedPreviousFair: {
         type: String,
@@ -168,7 +164,7 @@ const studentDetailSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // adds createdAt & updatedAt
+    timestamps: true, 
   }
 );
 

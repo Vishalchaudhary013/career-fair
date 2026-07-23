@@ -134,7 +134,7 @@ const VirtualJoiningTab = ({ venueName, setVenueName, city, setCity }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Event Region / City (For local targeting)</label>
+          <label className="block text-sm font-semibold text-gray-800 mb-2">Fair Region / City (For local targeting)</label>
           <input 
             type="text" 
             placeholder="e.g. Online, Bengaluru, Mumbai" 

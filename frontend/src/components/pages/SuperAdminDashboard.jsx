@@ -25,7 +25,7 @@ const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
   
   const [activeSection, setActiveSection] = useState("Overview");
-  const [stats, setStats] = useState({ users: 0, events: 0, bookings: 0 });
+  const [stats, setStats] = useState({ users: 0, fairs: 0, bookings: 0 });
   const [users, setUsers] = useState([]);
   const [events, setEvents] = useState([]);
   
@@ -33,37 +33,32 @@ const SuperAdminDashboard = () => {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Password Change UI State
   const [passwordChangeUserId, setPasswordChangeUserId] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [notifyAdmin, setNotifyAdmin] = useState(false);
   
-  // Password Visibility State (for viewing decrypted passwords)
   const [visiblePasswords, setVisiblePasswords] = useState([]);
 
-  // Bulk Selection State
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedSuperEvents, setSelectedSuperEvents] = useState([]);
 
-  // Profile Settings State
   const [profileEmail, setProfileEmail] = useState("");
   const [profileCurrentPassword, setProfileCurrentPassword] = useState("");
   const [profileNewPassword, setProfileNewPassword] = useState("");
   const [profileConfirmPassword, setProfileConfirmPassword] = useState("");
   const [profileShowPassword, setProfileShowPassword] = useState(false);
 
-  // Filter States for All Events
   const [searchQueryAllEvents, setSearchQueryAllEvents] = useState("");
   const [filterYearAllEvents, setFilterYearAllEvents] = useState("");
   const [filterMonthAllEvents, setFilterMonthAllEvents] = useState("");
   const [filterCategoryAllEvents, setFilterCategoryAllEvents] = useState("");
   const [allCategoriesAllEvents, setAllCategoriesAllEvents] = useState([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCats = async () => {
-      const defaultNames = ["Career Drive", "College Festivals", "Competitions", "Conferences", "Cultural Events", "Hackathon", "Mentorships", "Olympiad", "Quizzes", "Webinars", "Workshop"];
+      const defaultNames = ["Career Drive", "College Festivals", "Competitions", "Conferences", "Cultural Fairs", "Hackathon", "Mentorships", "Olympiad", "Quizzes", "Webinars", "Workshop"];
       const eventCats = events.map(e => e.category).filter(Boolean);
       try {
         const fetched = await getCategories();
@@ -133,7 +128,6 @@ const SuperAdminDashboard = () => {
         setEvents(data);
       } else if (activeSection === "MyEvents") {
         const data = await getAllEvents();
-        // Super Admin events are those where the organizer matches the super admin's own ID
         setEvents(data.filter(e => !e.organizer || e.organizer === user?._id || e.organizer?._id === user?._id || !e.organizer));
       }
     } catch (err) {
@@ -149,7 +143,7 @@ const SuperAdminDashboard = () => {
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user and all their events/bookings?")) return;
+    if (!window.confirm("Are you sure you want to delete this user and all their fairs/bookings?")) return;
     setBusy(true);
     try {
       await deleteUser(id);
@@ -166,7 +160,6 @@ const SuperAdminDashboard = () => {
     setBusy(true);
     try {
       await approveAdmin(id);
-      // Update local state to reflect approval
       setUsers(users.map(u => u._id === id ? { ...u, isApproved: true } : u));
       alert("Organizer approved successfully!");
     } catch (err) {
@@ -191,30 +184,39 @@ const SuperAdminDashboard = () => {
   };
 
   const handleDeleteEvent = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    if (!window.confirm("Are you sure you want to delete this fair?")) return;
     setBusy(true);
     try {
       await deleteEvent(id);
       setEvents(events.filter(e => e._id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete event");
+      alert(err.response?.data?.message || "Failed to delete fair");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleImpersonate = async (id) => {
+  const handleImpersonate = async (id, role) => {
     setBusy(true);
     try {
       const data = await impersonateUser(id);
       
-      // Save super admin details to return later
       localStorage.setItem("super_admin_user", localStorage.getItem("user"));
       localStorage.setItem("super_admin_token", localStorage.getItem("token"));
       
-      localStorage.setItem("user", JSON.stringify(data));
+      const impersonatedUser = {
+        ...data,
+        role: role
+      };
+      
+      localStorage.setItem("user", JSON.stringify(impersonatedUser));
       localStorage.setItem("token", data.token);
-      window.location.href = "/admin-dashboard"; // Redirect to user dashboard
+      
+      if (role === "EMPLOYER") {
+        window.location.href = "/employer-dashboard";
+      } else {
+        window.location.href = `/admin-dashboard/${data._id || ""}`;
+      }
     } catch (err) {
       alert(err.response?.data?.message || "Failed to impersonate user");
       setBusy(false);
@@ -236,7 +238,6 @@ const SuperAdminDashboard = () => {
       await changeUserPassword(id, newPassword, notifyAdmin);
       alert("Password updated successfully!");
       
-      // Update local state so it shows up immediately
       setUsers(users.map(u => {
         if (u._id === id) {
           return { ...u, decryptedPassword: newPassword };
@@ -262,7 +263,6 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // Bulk Delete Functions
   const handleSelectAllUsers = (e) => {
     if (e.target.checked) {
       setSelectedUsers(users.map(u => u._id));
@@ -310,7 +310,7 @@ const SuperAdminDashboard = () => {
   };
 
   const handleDeleteBulkEvents = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${selectedSuperEvents.length} events?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedSuperEvents.length} fairs?`)) return;
     setBusy(true);
     try {
       await Promise.all(selectedSuperEvents.map(id => deleteEvent(id)));
@@ -345,7 +345,7 @@ const SuperAdminDashboard = () => {
       setProfileCurrentPassword("");
       setProfileNewPassword("");
       setProfileConfirmPassword("");
-      // Update local storage user
+      
       if (data.user) {
         const currentUser = JSON.parse(localStorage.getItem("user"));
         localStorage.setItem("user", JSON.stringify({ ...currentUser, ...data.user }));
@@ -362,8 +362,8 @@ const SuperAdminDashboard = () => {
     { key: "Admins", label: "Admins", icon: <Users size={16} /> },
     { key: "Employers", label: "Employers", icon: <Users size={16} /> },
     { key: "Users", label: "Users", icon: <Users size={16} /> },
-    { key: "MyEvents", label: "Events", icon: <LayoutGrid size={16} /> },
-    { key: "AllEvents", label: "All Events", icon: <CalendarDays size={16} /> },
+    { key: "MyEvents", label: "Fairs", icon: <LayoutGrid size={16} /> },
+    { key: "AllEvents", label: "All Fairs", icon: <CalendarDays size={16} /> },
     { key: "Profile", label: "Manage Profile", icon: <Settings size={16} /> }
   ];
 
@@ -447,17 +447,17 @@ const SuperAdminDashboard = () => {
                       ? <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-medium border border-emerald-200">Verified</span> 
                       : <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs font-medium border border-amber-200">Pending</span>}
                     
-                    {(u.role === "ORGANIZER" || u.role === "ADMIN") && !u.isApproved && (
+                    {/* {(u.role === "ORGANIZER" || u.role === "ADMIN") && !u.isApproved && (
                       <span className="block mt-1 text-secondary text-[10px] font-bold uppercase tracking-wider">Unapproved</span>
                     )}
                     {(u.role === "ORGANIZER" || u.role === "ADMIN") && u.isApproved && (
                       <span className="block mt-1 text-primary text-[10px] font-bold uppercase tracking-wider">Approved</span>
-                    )}
+                    )} */}
                   </td>
                   <td className="px-4 py-3 text-right flex justify-end gap-3 items-center">
                     <button 
                       disabled={busy}
-                      onClick={() => handleImpersonate(u._id)}
+                      onClick={() => handleImpersonate(u._id, u.role)}
                       className="text-primary hover:text-primary/80 bg-primary/10 p-1.5 rounded-md disabled:opacity-50 transition"
                       title="Access Dashboard"
                     >
@@ -657,6 +657,14 @@ const SuperAdminDashboard = () => {
                 <td className="px-4 py-3 text-right flex justify-end gap-3 items-center">
                   <button 
                     disabled={busy}
+                    onClick={() => handleImpersonate(u._id, u.role)}
+                    className="text-primary hover:text-primary/80 bg-primary/10 p-1.5 rounded-md disabled:opacity-50 transition"
+                    title="Access Dashboard"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
+                  <button 
+                    disabled={busy}
                     onClick={() => handleDeleteUser(u._id)}
                     className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded-md disabled:opacity-50 transition"
                     title="Delete User"
@@ -763,7 +771,7 @@ const SuperAdminDashboard = () => {
                       <p className="text-3xl mt-1 font-bold text-slate-800">{stats.users}</p>
                     </div>
                     <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
-                      <p className="text-xs text-slate-500 tracking-widest font-semibold">TOTAL EVENTS</p>
+                      <p className="text-xs text-slate-500 tracking-widest font-semibold">TOTAL Fairs</p>
                       <p className="text-3xl mt-1 font-bold text-slate-800">{stats.events}</p>
                     </div>
                     <div className="rounded-lg border border-[#E2EAFC] p-4 bg-white shadow-sm">
@@ -790,7 +798,7 @@ const SuperAdminDashboard = () => {
                   <div className="bg-white border border-[#E2EAFC] overflow-hidden shadow-sm">
                     <div className="p-4 border-b border-[#E2EAFC] flex justify-between items-center bg-slate-50/50">
                       <div className="flex items-center gap-3">
-                        <h2 className="font-semibold text-primary">All Platform Events</h2>
+                        <h2 className="font-semibold text-primary">All Platform Fairs</h2>
                         <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full">{events.length}</span>
                       </div>
                       {selectedSuperEvents.length > 0 && (
@@ -867,7 +875,7 @@ const SuperAdminDashboard = () => {
                                 onChange={handleSelectAllEvents}
                               />
                             </th>
-                            <th className="px-4 py-3 font-semibold">Event Title</th>
+                            <th className="px-4 py-3 font-semibold">Fair Title</th>
                             <th className="px-4 py-3 font-semibold">Organizer</th>
                             <th className="px-4 py-3 font-semibold">Date</th>
                             <th className="px-4 py-3 text-left font-semibold">Actions</th>
@@ -901,7 +909,7 @@ const SuperAdminDashboard = () => {
                             </tr>
                           ))}
                           {filteredAllEvents.length === 0 && (
-                            <tr><td colSpan="5" className="text-center py-8 text-slate-500">No events found</td></tr>
+                            <tr><td colSpan="5" className="text-center py-8 text-slate-500">No fairs found</td></tr>
                           )}
                         </tbody>
                       </table>

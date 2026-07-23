@@ -16,7 +16,7 @@ const navItems = [
   { id: "venue", label: "Venue" },
 ];
 
-const EventStickyNav = ({ showHighlights, showGallery, showFaqs, showThingsToKnown, organizerWhatsAppNumber, fairLogo, fairName, eventId, isOnline, companyListDocument, contact }) => {
+const EventStickyNav = ({ showHighlights, showGallery, showFaqs, showThingsToKnown, organizerWhatsAppNumber, fairLogo, fairName, eventId, isOnline, companyListDocument, contact, isPast }) => {
   const [activeId, setActiveId] = useState("");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showContactDropdown, setShowContactDropdown] = useState(false);
@@ -222,7 +222,14 @@ const EventStickyNav = ({ showHighlights, showGallery, showFaqs, showThingsToKno
         <div className="flex items-center gap-4">
          
           
-          {user ? (
+          {isPast ? (
+            <button 
+              disabled 
+              className="bg-gray-300 text-gray-500 px-6 py-2.5 rounded-full font-semibold cursor-not-allowed"
+            >
+              Registration Closed
+            </button>
+          ) : user ? (
             <div className="relative" ref={profileDropdownRef}>
               <button 
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}

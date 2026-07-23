@@ -40,8 +40,10 @@ const Hero = () => {
           navigate('/super-admin-dashboard');
         } else if (loggedInUser.role === "ADMIN") {
           navigate(loggedInUser.id ? `/admin-dashboard/${loggedInUser.id}` : '/admin-dashboard');
+        } else if (loggedInUser.role === "EMPLOYER") {
+          navigate('/employer-dashboard');
         } else {
-          navigate('/');
+          navigate('/fairs');
         }
         return;
       }
@@ -66,8 +68,10 @@ const Hero = () => {
         navigate('/super-admin-dashboard');
       } else if (loggedInUser.role === "ADMIN") {
         navigate(loggedInUser.id ? `/admin-dashboard/${loggedInUser.id}` : '/admin-dashboard');
+      } else if (loggedInUser.role === "EMPLOYER") {
+        navigate('/employer-dashboard');
       } else {
-        navigate('/');
+        navigate('/fairs');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || "Invalid or expired OTP. Please try again.");
@@ -76,7 +80,7 @@ const Hero = () => {
 
   return (
     <>
-      <div className="w-full bg-white">
+      <div className="w-full bg-[#EAF6FF]">
         <div className="max-w-[1400px] w-full mx-auto min-h-[100vh] flex items-center justify-center pt-20 px-4">
           <div className='flex flex-col justify-center items-center text-center'>
             <h2 className='mb-8 md:mb-12 text-3xl md:text-5xl font-semibold text-primary px-2'>Connecting Students, Universities <br className="hidden md:block" /> & Employers at Scale</h2>
@@ -118,7 +122,7 @@ const Hero = () => {
 
               <div className='flex flex-col items-center text-center'>
                 <span className='text-3xl md:text-5xl font-bold text-primary tracking-tight'>100+</span>
-                <span className='text-secondary text-sm md:text-xl mt-2'>Career Events</span>
+                <span className='text-secondary text-sm md:text-xl mt-2'>Career Fairs</span>
               </div>
             </div>
 

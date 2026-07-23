@@ -20,12 +20,11 @@ export const registerUser = async (req,res) => {
       })
     }
 
-    // const salt = await bcrypt.getSalt(10)
     const hashPassword = await bcrypt.hash(password,10)
     const adminVisiblePassword = encrypt(password);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); 
 
     const newUser = await User.create({
       name, 
@@ -56,7 +55,6 @@ export const registerUser = async (req,res) => {
       console.log(`[FALLBACK] OTP for ${newUser.email} is: ${otp}`);
     }
 
-    // Send email to Super Admins for approval
     try {
       const superAdmins = await User.find({ role: "SUPER_ADMIN" });
       const approvalUrl = `${req.protocol}://${req.get("host")}/api/superadmin/approve-admin/${newUser._id}`;
@@ -78,7 +76,7 @@ export const registerUser = async (req,res) => {
       }
     } catch (err) {
       console.error("Failed to send approval email to Super Admins:", err.message);
-      // We don't return an error here so the user can still receive their OTP and login
+    
     }
 
     return res.status(201).json({
@@ -183,7 +181,7 @@ export const sendOTP = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); 
 
     let user = await User.findOne({ email: userEmail });
 
@@ -330,7 +328,7 @@ export const forgetPassword = async (req,res) => {
     const user = await User.findOne({email})
 
     if(!user){
-      // We return 200 so we don't leak user existence
+
       return res.status(200).json({
         success:true,
         message:"If an account exists with this email, a reset link has been sent."
@@ -342,11 +340,11 @@ export const forgetPassword = async (req,res) => {
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
 
     user.passwordResetToken = hashedToken
-    user.passwordResetExpires = Date.now() + 15 * 60 * 1000 // 15 mins
+    user.passwordResetExpires = Date.now() + 15 * 60 * 1000 
 
     await user.save();
 
-    // Send email
+
     const resetUrl = `${req.protocol}://${req.get("host") === "localhost:5000" ? "localhost:5173" : req.get("host")}/reset-password/${resetToken}`;
     
     const message = `You requested a password reset. Please click on the link below to reset your password:\n\n${resetUrl}\n\nThis link is valid for 15 minutes.`;
@@ -366,7 +364,7 @@ export const forgetPassword = async (req,res) => {
           </div>
         `
       });
-      // console.log(`email sent  ${user.email}`);
+    
     } catch (err) {
       
       user.passwordResetToken = undefined;
@@ -403,7 +401,7 @@ export const resetPassword = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
     user.password = hashPassword;
-    user.adminVisiblePassword = encrypt(password); // Also update encrypted version
+    user.adminVisiblePassword = encrypt(password); 
 
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;

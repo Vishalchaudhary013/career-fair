@@ -16,9 +16,16 @@ const Home = () => {
     const fetchEvents = async () => {
       try {
         const data = await getAllEvents();
-        setEvents(data || []);
+        const now = new Date();
+        const activeEvents = (data || []).filter(e => {
+          const dateStr = e.endDate || e.startDate || e.basicInfo?.endDate || e.basicInfo?.startDate;
+          if (!dateStr) return true;
+          const dateToCheck = new Date(dateStr);
+          return dateToCheck >= now;
+        });
+        setEvents(activeEvents);
       } catch (error) {
-        console.error("Failed to load events:", error);
+        console.error("Failed to load fairs:", error);
       }
     };
 
@@ -29,7 +36,7 @@ const Home = () => {
   const jobs = events.filter(e => e.fairType === "Job");
   const apprenticeships = events.filter(e => e.fairType === "Apprenticeship");
 
-  // Get 4 latest events among Job, Internship, Apprenticeship
+  // Get 4 latest fairs among Job, Internship, Apprenticeship
   const upcoming = events
     .filter(e => ["Job", "Internship", "Apprenticeship"].includes(e.fairType))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

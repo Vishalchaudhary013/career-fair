@@ -9,7 +9,7 @@ import CandidateDetailsModal from "./CandidateDetailsModal";
 
 const EventResponsesView = ({ eventId, onBack }) => {
   const [bookings, setBookings] = useState([]);
-  const [event, setEvent] = useState(null);
+  const [fair, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("form"); 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -92,7 +92,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Responses");
-    XLSX.writeFile(workbook, `${event?.basicInfo?.title || 'Event'}_${activeTab === "tickets" ? 'TicketData' : 'FormData'}.xlsx`);
+    XLSX.writeFile(workbook, `${event?.basicInfo?.title || 'Fair'}_${activeTab === "tickets" ? 'TicketData' : 'FormData'}.xlsx`);
   };
 
   const downloadCSV = () => {
@@ -104,7 +104,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `${event?.basicInfo?.title || 'Event'}_${activeTab === "tickets" ? 'TicketData' : 'FormData'}.csv`);
+    link.setAttribute("download", `${event?.basicInfo?.title || 'Fair'}_${activeTab === "tickets" ? 'TicketData' : 'FormData'}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -326,7 +326,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
       <div className="p-5 border-b border-[#E2EAFC] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-primary font-semibold mb-4 transition-colors">
-            <FaArrowLeft className="text-xs" /> Back to Events
+            <FaArrowLeft className="text-xs" /> Back to Fairs
           </button>
           <h3 className="text-lg font-semibold text-primary">{event?.basicInfo?.title}</h3>
           <p className="text-xs font-medium text-slate-500 mt-1">Total Bookings: {bookingsArray.length}</p>
@@ -498,7 +498,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
                         })()}
                         <td className="py-4 px-5 whitespace-nowrap text-center">
                           <button 
-                            onClick={() => downloadRegistrationPDF(booking, event)}
+                            onClick={() => downloadRegistrationPDF(booking, fair)}
                             className="text-[#00875A] hover:text-[#006644] text-sm font-medium transition-colors"
                           >
                             View PDF

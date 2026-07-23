@@ -8,7 +8,7 @@ router.post('/public', upload.single('file'), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
-    // Return relative URL for frontend to use
+    
     const fileUrl = `/uploads/files/${req.file.filename}`;
     res.status(200).json({ success: true, url: fileUrl });
   } catch (error) {

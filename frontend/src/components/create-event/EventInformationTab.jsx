@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Info, Plus, Minus, ChevronDown, ChevronUp, AlertCircle, Briefcase, Music, Trophy, Mic, Palette, Code, Users, Medal, HelpCircle, Video, Wrench, Ticket } from "lucide-react";
+import { SERVER_URL } from "../../config";
 
 const DEFAULT_CATEGORIES = [
   { value: "Career Drive",    label: "Career Drive",    icon: Briefcase },
@@ -65,7 +66,6 @@ const EventInformationTab = ({
     if (!newCatName.trim() || !newCatFile) return;
     setIsCreatingCat(true);
     
-    // Mock category creation
     const newCat = { value: newCatName.trim(), label: newCatName.trim(), iconUrl: URL.createObjectURL(newCatFile) };
     setCategoriesList(prev => [newCat, ...prev]);
     setCategory(newCat.value);
@@ -80,7 +80,6 @@ const EventInformationTab = ({
     if (!newTypeName.trim()) return;
     setIsCreatingType(true);
     
-    // Mock type creation
     const newType = { value: newTypeName.trim(), label: newTypeName.trim(), icon: Briefcase };
     setTypesList(prev => [newType, ...prev]);
     setFairType(newType.value);
@@ -102,11 +101,10 @@ const EventInformationTab = ({
   return (
     <div className="w-full space-y-10 animate-in fade-in duration-200">
 
-      {/* ── Category Selector ── */}
       <div>
         <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
           Fair Category
-          <span title="Choose the category that best describes your fair." className="cursor-help text-gray-400"><Info size={14} /></span>
+          {/* <span title="Choose the category that best describes your event." className="cursor-help text-gray-400"><Info size={14} /></span> */}
         </label>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
           <div className="relative flex-1">
@@ -145,11 +143,11 @@ const EventInformationTab = ({
         )}
       </div>
 
-      {/* ── Type Selector ── */}
+    
       <div>
         <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
           Fair Type
-          <span title="Choose the type of opportunities available at your fair." className="cursor-help text-gray-400"><Info size={14} /></span>
+          {/* <span title="Choose the type of opportunities available at your event." className="cursor-help text-gray-400"><Info size={14} /></span> */}
         </label>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
           <div className="relative flex-1">
@@ -187,7 +185,6 @@ const EventInformationTab = ({
         )}
       </div>
 
-      {/* New Category Modal */}
       {showNewCatModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onMouseDown={() => setShowNewCatModal(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] mx-4 p-6 animate-in zoom-in-95 duration-200" onMouseDown={e => e.stopPropagation()}>
@@ -293,7 +290,7 @@ const EventInformationTab = ({
       <div>
         <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
           Fair Description
-          <span title="This appears on the public fair page." className="cursor-help text-gray-400"><Info size={14} /></span>
+          {/* <span title="This appears on the public fair page." className="cursor-help text-gray-400"><Info size={14} /></span> */}
         </label>
 
         
@@ -306,7 +303,6 @@ const EventInformationTab = ({
             <button key={cmd} title={title} onMouseDown={e => { e.preventDefault(); document.execCommand(cmd, false); }} className="w-7 h-7 rounded flex items-center justify-center hover:bg-gray-200 text-gray-700 cursor-pointer transition">{label}</button>
           ))}
           
-          {/* Text Color Picker */}
           <div className="relative flex items-center justify-center w-7 h-7 rounded hover:bg-gray-200 cursor-pointer transition" title="Text Color">
             <div className="flex flex-col items-center justify-center">
               <span className="font-bold text-xs text-gray-800 leading-none">A</span>
@@ -386,7 +382,7 @@ const EventInformationTab = ({
                             if (lastNode) { savedRange.current.setStartAfter(lastNode); savedRange.current.collapse(true); }
                             sel.removeAllRanges(); sel.addRange(savedRange.current);
                           }
-                          if (editor) { const evt = new Event("input", { bubbles: true }); editor.dispatchEvent(evt); }
+                          if (editor) { const evt = new Fair("input", { bubbles: true }); editor.dispatchEvent(evt); }
                           setShowTablePicker(false);
                         }} className={`w-5 h-5 rounded-sm border cursor-pointer transition-colors ${r < tableHover.rows && c < tableHover.cols ? "bg-primary/20 border-primary/40" : "bg-gray-50 border-gray-200 hover:bg-gray-100"}`} />
                       ))}
@@ -400,7 +396,7 @@ const EventInformationTab = ({
         </div>
 
         <div ref={editorRef} contentEditable suppressContentEditableWarning onPaste={e => { e.preventDefault(); const text = e.clipboardData.getData("text/plain"); document.execCommand("insertText", false, text); }} onInput={e => setDescription(e.currentTarget.innerHTML)} data-placeholder="Describe your fair here..." className="w-full min-h-[220px] border border-t-0 border-gray-200 rounded-b-lg px-4 py-3 text-sm text-gray-800 outline-none transition overflow-auto rich-editor" style={{ lineHeight: "1.7" }} />
-        <style>{`.rich-editor:empty:before{content:attr(data-placeholder);color:#9ca3af;pointer-events:none}.rich-editor table{border-collapse:collapse;width:100%;margin:8px 0}.rich-editor td,.rich-editor th{border:1px solid #d1d5db;padding:6px 10px;min-width:60px}.rich-editor a{color:#110060;text-decoration:underline}.rich-editor img{max-width:100%;border-radius:4px;margin:4px 0}.rich-editor ul{list-style:disc;padding-left:1.5rem;margin:4px 0}.rich-editor ol{list-style:decimal;padding-left:1.5rem;margin:4px 0}`}</style>
+        <style>{`.rich-editor:empty:before{content:attr(data-placeholder);color:#9ca3af;pointer-fairs:none}.rich-editor table{border-collapse:collapse;width:100%;margin:8px 0}.rich-editor td,.rich-editor th{border:1px solid #d1d5db;padding:6px 10px;min-width:60px}.rich-editor a{color:#110060;text-decoration:underline}.rich-editor img{max-width:100%;border-radius:4px;margin:4px 0}.rich-editor ul{list-style:disc;padding-left:1.5rem;margin:4px 0}.rich-editor ol{list-style:decimal;padding-left:1.5rem;margin:4px 0}`}</style>
 
         
         {showImgModal && (
@@ -413,17 +409,27 @@ const EventInformationTab = ({
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13V4m0 0L7 7m3-3l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 14v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                   Click to upload image
                 </button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { 
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={async e => { 
                   const file = e.target.files?.[0]; 
                   if (!file) return; 
                   try {
-                    const fakeUrl = URL.createObjectURL(file);
-                    const sel = window.getSelection(); 
-                    if (savedRange.current) { sel.removeAllRanges(); sel.addRange(savedRange.current); } 
-                    document.execCommand("insertImage", false, fakeUrl); 
-                    setShowImgModal(false); 
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    const res = await fetch(`${SERVER_URL}/api/upload/public`, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                      const fileUrl = data.url;
+                      const realUrl = fileUrl.startsWith('http') ? fileUrl : `${SERVER_URL}${fileUrl}`;
+                      const sel = window.getSelection(); 
+                      if (savedRange.current) { sel.removeAllRanges(); sel.addRange(savedRange.current); } 
+                      document.execCommand("insertImage", false, realUrl); 
+                      setShowImgModal(false); 
+                    } else {
+                      alert("Failed to upload image: " + data.message);
+                    }
                   } catch (err) {
                     console.error("Failed to upload image", err);
+                    alert("Failed to upload image.");
                   }
                   e.target.value = ""; 
                 }} />
@@ -660,7 +666,7 @@ const EventInformationTab = ({
       <div>
         <div className="flex items-center gap-1.5 mb-3">
           <h3 className="text-sm font-semibold text-primary">Who Can Apply</h3>
-          {/* <span className="cursor-help text-gray-400" title="Key facts shown as bullet list on event page"><AlertCircle size={14} /></span> */}
+          {/* <span className="cursor-help text-gray-400" title="Key facts shown as bullet list on fair page"><AlertCircle size={14} /></span> */}
         </div>
         <div className="space-y-2 w-full">
           {thingsToKnow.map((item, i) => (
@@ -684,7 +690,7 @@ const EventInformationTab = ({
 
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-3">Terms &amp; Conditions</label>
-        <textarea rows={5} placeholder="Enter terms and conditions for this fair..." value={termsText} onChange={e => setTermsText(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition resize-none" />
+        <textarea rows={5} placeholder="Enter terms and conditions for this event..." value={termsText} onChange={e => setTermsText(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition resize-none" />
       </div>
 
       

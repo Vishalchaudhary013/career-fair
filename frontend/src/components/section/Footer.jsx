@@ -34,7 +34,7 @@ const Footer = () => {
             <ul className="flex flex-col gap-3 text-sm text-gray-300">
               <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">Find Internships</a></li>
               <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">Job Opportunities</a></li>
-              <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">Career Events</a></li>
+              <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">Career Fairs</a></li>
               <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">Partner with us</a></li>
               <li><a href="#" className="hover:text-white transition-colors hover:underline underline-offset-4">About Us</a></li>
             </ul>

@@ -34,7 +34,7 @@ const EventHeader = ({ event, images, organizerWhatsAppNumber, timeLeft, eventId
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const safeTitle = event.title ? event.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'event';
+      const safeTitle = event.title ? event.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'fair';
       a.download = `${safeTitle}-qr-code.png`;
       document.body.appendChild(a);
       a.click();
@@ -75,7 +75,7 @@ const EventHeader = ({ event, images, organizerWhatsAppNumber, timeLeft, eventId
                   const isOnline = event.isOnline;
                   const meetingLink = event.meetingLink;
                   
-                  let platformName = "Virtual Event";
+                  let platformName = "Virtual Fair";
                   let platformIcon = <MdOutlineLocationOn size={22} className="text-primary" />;
 
                   if (isOnline) {
@@ -93,18 +93,19 @@ const EventHeader = ({ event, images, organizerWhatsAppNumber, timeLeft, eventId
                       </div>
                       {isOnline ? (
                         meetingLink && (
-                          <div className="flex items-center gap-4">
-                            <span className="text-[16px]">|</span>
-                            <a
-                            href={meetingLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1.5 font-semibold text-white border border-primary/20 rounded-4xl py-1 px-3 bg-primary  transition-all"
-                          >
-                            <IoMdLink size={18} />
-                            <span className="text-[14px]">Join the Fair</span>
-                          </a>
-                          </div>
+                          // <div className="flex items-center gap-4">
+                          //   <span className="text-[16px]">|</span>
+                          //   <a
+                          //   href={meetingLink}
+                          //   target="_blank"
+                          //   rel="noreferrer"
+                          //   className="flex items-center gap-1.5 font-semibold text-white border border-primary/20 rounded-4xl py-1 px-3 bg-primary  transition-all"
+                          // >
+                          //   <IoMdLink size={18} />
+                          //   <span className="text-[14px]">Join the Fair</span>
+                          // </a>
+                          // </div>
+                          <></>
                         )
                       ) : (
                         <a
@@ -126,27 +127,27 @@ const EventHeader = ({ event, images, organizerWhatsAppNumber, timeLeft, eventId
 
           
           <div className="w-full md:w-[380px] shrink-0 mt-6 md:mt-0 relative">
-           
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-4 py-1 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 bg-secondary text-white">
-              Registration Closes In
+            
+            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-4 py-1 rounded-full shadow-md uppercase tracking-widest z-10 whitespace-nowrap border border-gray-100 ${event?.isPast ? "bg-gray-500 text-white" : "bg-secondary text-white"}`}>
+              {event?.isPast ? "Registration Closed" : "Registration Closes In"}
             </div>
             
-            <div className="bg-[#1b223c] rounded-xl p-6 pt-7 shadow-xl text-white">
+            <div className={`rounded-xl p-6 pt-7 shadow-xl text-white ${event?.isPast ? "bg-gray-800" : "bg-[#1b223c]"}`}>
               <div className="grid grid-cols-4 gap-3 ">
-                <div className="bg-[#2a324b] py-3 px-2 rounded-lg text-center">
-                  <span className="text-2xl font-bold block leading-none mb-1">{timeLeft?.days || 0}</span>
+                <div className={`py-3 px-2 rounded-lg text-center ${event?.isPast ? "bg-gray-700/50 text-gray-400" : "bg-[#2a324b]"}`}>
+                  <span className="text-2xl font-bold block leading-none mb-1">{event?.isPast ? 0 : (timeLeft?.days || 0)}</span>
                   <span className="text-xs text-gray-300 font-medium">Days</span>
                 </div>
-                <div className="bg-[#2a324b] py-3 px-2 rounded-lg text-center">
-                  <span className="text-2xl font-bold block leading-none mb-1">{timeLeft?.hours || 0}</span>
+                <div className={`py-3 px-2 rounded-lg text-center ${event?.isPast ? "bg-gray-700/50 text-gray-400" : "bg-[#2a324b]"}`}>
+                  <span className="text-2xl font-bold block leading-none mb-1">{event?.isPast ? 0 : (timeLeft?.hours || 0)}</span>
                   <span className="text-xs text-gray-300 font-medium">Hours</span>
                 </div>
-                <div className="bg-[#2a324b] py-3 px-2 rounded-lg text-center">
-                  <span className="text-2xl font-bold block leading-none mb-1">{timeLeft?.minutes || 0}</span>
+                <div className={`py-3 px-2 rounded-lg text-center ${event?.isPast ? "bg-gray-700/50 text-gray-400" : "bg-[#2a324b]"}`}>
+                  <span className="text-2xl font-bold block leading-none mb-1">{event?.isPast ? 0 : (timeLeft?.minutes || 0)}</span>
                   <span className="text-xs text-gray-300 font-medium">Minutes</span>
                 </div>
-                <div className="bg-[#2a324b] py-3 px-2 rounded-lg text-center">
-                  <span className="text-2xl font-bold block leading-none mb-1">{timeLeft?.seconds || 0}</span>
+                <div className={`py-3 px-2 rounded-lg text-center ${event?.isPast ? "bg-gray-700/50 text-gray-400" : "bg-[#2a324b]"}`}>
+                  <span className="text-2xl font-bold block leading-none mb-1">{event?.isPast ? 0 : (timeLeft?.seconds || 0)}</span>
                   <span className="text-xs text-gray-300 font-medium">Seconds</span>
                 </div>
               </div>

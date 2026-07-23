@@ -21,6 +21,7 @@ import Home from '../components/pages/Home';
 import CreateEventPage from '../components/pages/CreateEventPage';
 import AllEventsPage from '../components/pages/AllEventsPage';
 import EventCalendarPage from '../components/pages/EventCalendarPage';
+import EmployerDashboard from '../components/pages/EmployerDashboard';
 
 const AppRoutes = () => {
   return (
@@ -41,6 +42,14 @@ const AppRoutes = () => {
       <Route path="/jobfair/:jobFairId/register" element={<RegistrationFormCont />} />
       
       {/* Protected Routes */}
+      <Route 
+        path="/employer-dashboard" 
+        element={
+          <ProtectedRoute allowedRoles={['EMPLOYER']}>
+            <EmployerDashboard />
+          </ProtectedRoute>
+        } 
+      />
       <Route 
         path="/super-admin-dashboard" 
         element={

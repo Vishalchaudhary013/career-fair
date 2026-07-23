@@ -9,7 +9,7 @@ import { createBooking } from "../services/bookingService";
 import api from "../services/api";
 import { formatDate, formatTime } from "../../utils/dateFormatter";
 
-const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Event";
+const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Fair";
 const getEventDate = (event) => event?.basicInfo?.startDate || event?.startDate;
 const getEventTime = (event) => {
   if (event?.basicInfo?.startTime) return event.basicInfo.startTime;
@@ -56,7 +56,7 @@ const AttendeeDetailsPage = () => {
   }, [id]);
 
   if (loading) return <div className="flex justify-center mt-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7e3af2]"></div></div>;
-  if (error || !dbEvent) return <div className="text-center mt-32 text-red-500">{error || "Event not found"}</div>;
+  if (error || !dbEvent) return <div className="text-center mt-32 text-red-500">{error || "Fair not found"}</div>;
 
   const title = getEventTitle(dbEvent);
   const startDate = formatDate(getEventDate(dbEvent));
@@ -91,7 +91,7 @@ const AttendeeDetailsPage = () => {
         totalItems,
         answers
       });
-      navigate(`/event/${id}/booking-success/${response._id}`);
+      navigate(`/fair/${id}/booking-success/${response._id}`);
     } catch (err) {
       alert("Failed to book tickets. " + (err.message || "Please try again."));
       setSubmitting(false);

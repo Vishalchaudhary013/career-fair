@@ -27,6 +27,7 @@ export const getMediaUrl = (path) => {
   let subfolder = '';
   if (path.startsWith('fairBanner-')) subfolder = 'banner/';
   else if (path.startsWith('fairLogo-')) subfolder = 'logo/';
+  else if (path.startsWith('companyLogo-') || path.startsWith('companyListDocument-') || path.startsWith('file-')) subfolder = 'files/';
 
   // Remove leading slash and 'uploads/' if it exists in the path
   const cleanPath = path.replace(/^\/?(uploads\/)?/, '');

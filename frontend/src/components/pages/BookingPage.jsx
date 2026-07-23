@@ -5,7 +5,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { Inbox, Users } from "lucide-react";
 import { formatDate, formatTime } from "../../utils/dateFormatter";
 
-const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Event";
+const getEventTitle = (event) => event?.basicInfo?.title || event?.fairName || "Fair";
 const getEventDate = (event) => event?.basicInfo?.startDate || event?.startDate;
 const getEventTime = (event) => {
   if (event?.basicInfo?.startTime) return event.basicInfo.startTime;
@@ -32,7 +32,7 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Track quantities for each ticket ID
+  
   const [quantities, setQuantities] = useState({});
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [answers, setAnswers] = useState({});
@@ -52,7 +52,7 @@ const BookingPage = () => {
   }, [id]);
 
   if (loading) return <div className="flex justify-center mt-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
-  if (error || !dbEvent) return <div className="text-center mt-32 text-red-500">{error || "Event not found"}</div>;
+  if (error || !dbEvent) return <div className="text-center mt-32 text-red-500">{error || "Fair not found"}</div>;
 
   const title = getEventTitle(dbEvent);
   const startDate = formatDate(getEventDate(dbEvent));
@@ -91,7 +91,7 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfdfd] flex flex-col font-sans">
-      {/* Header */}
+      
       <div className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col">
           <div className="flex items-center gap-3">
@@ -106,11 +106,11 @@ const BookingPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      
       <div className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Left Column - Tickets */}
+        
           <div className="lg:col-span-8">
             {tickets.length === 0 ? (
               <p className="text-gray-500">No tickets available for this event.</p>
@@ -164,7 +164,7 @@ const BookingPage = () => {
             )}
           </div>
 
-          {/* Right Column - Summary */}
+        
           <div className="lg:col-span-4">
             {totalItems === 0 ? (
               <div className="border border-gray-200 rounded flex flex-col items-center justify-center py-16 bg-white shadow-sm">
@@ -192,9 +192,9 @@ const BookingPage = () => {
                 </div>
                 
                 <button 
-                  onClick={() => navigate(`/event/${id}/attendee-details`, { 
+                  onClick={() => navigate(`/fair/${id}/attendee-details`, { 
                     state: { 
-                      event: dbEvent,
+                      fair: dbEvent,
                       quantities, 
                       totalPrice, 
                       totalItems, 
