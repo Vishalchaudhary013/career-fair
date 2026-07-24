@@ -1,11 +1,11 @@
 import React from "react";
-import { FiLogOut, FiPieChart, FiCalendar } from "react-icons/fi";
+import { FiLogOut, FiPieChart, FiCalendar, FiBriefcase } from "react-icons/fi";
 
 const AdminSidebar = ({ activeSection, setActiveSection, onLogout }) => {
   const menuItems = [
     { key: "Overview", label: "Overview", icon: <FiPieChart size={16} /> },
     { key: "Fairs", label: "Fairs", icon: <FiCalendar size={16} /> },
-    // { key: "Expired-Fairs", label: "Expired Fairs", icon: <FiCalendar size={16} /> },
+    { key: "EmployerJobs", label: "Employer Jobs", icon: <FiBriefcase size={16} /> },
   ];
 
   return (

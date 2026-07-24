@@ -1,3 +1,5 @@
+import { t } from "../../utils/translations";
+
 const allItems = [
   "basic-information",
   "location",
@@ -6,34 +8,34 @@ const allItems = [
   "question"
 ];
 
-const CreateEventSidebar = ({ activeTab, setActiveTab, maxReachedStep = 0, eventType }) => {
+const CreateEventSidebar = ({ activeTab, setActiveTab, maxReachedStep = 0, eventType, language }) => {
   const currentIdx = allItems.indexOf(activeTab);
 
   const items = [
     {
       id: "basic-information",
-      label: "Basic information",
-      description: "Title, date & time"
+      label: t(language, "basicInformation"),
+      description: t(language, "titleDateTime")
     },
     {
       id: "location",
-      label: eventType === "virtual" ? "Joining details" : "Location",
-      description: eventType === "virtual" ? "Virtual meeting links" : "Physical Fair location"
+      label: eventType === "virtual" ? t(language, "joiningDetails") : t(language, "location"),
+      description: eventType === "virtual" ? t(language, "virtualMeetingLinks") : t(language, "physicalFairLocation")
     },
     {
       id: "event-information",
-      label: "Fair information",
-      description: "Description, FAQs & terms"
+      label: t(language, "fairInformation"),
+      description: t(language, "descFaqsTerms")
     },
     {
       id: "banner-photos",
-      label: "Banner and photos",
-      description: "Fair banner & logo"
+      label: t(language, "bannerAndPhotos"),
+      description: t(language, "fairBannerLogo")
     },
     {
       id: "question",
-      label: "Question",
-      description: "Registration form fields"
+      label: t(language, "questionSidebar"),
+      description: t(language, "registrationFormFields")
     }
   ];
 
@@ -42,7 +44,7 @@ const CreateEventSidebar = ({ activeTab, setActiveTab, maxReachedStep = 0, event
       
       <div className="lg:hidden w-full bg-white border-b border-gray-100 py-3.5 px-4 sm:px-6 shrink-0 flex flex-col gap-2">
         <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
-          <span>Step {currentIdx + 1} of {items.length}</span>
+          <span>{t(language, "step")} {currentIdx + 1} of {items.length}</span>
           <span className="text-primary font-semibold">{items[currentIdx]?.label}</span>
         </div>
         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">

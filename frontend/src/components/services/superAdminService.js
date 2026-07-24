@@ -44,3 +44,8 @@ export const approveAdmin = async (id) => {
   const response = await api.get(`/superadmin/approve-admin/${id}`);
   return response.data;
 };
+
+export const getAllBookings = async () => {
+  const response = await api.get("/superadmin/bookings");
+  return response.data;
+};

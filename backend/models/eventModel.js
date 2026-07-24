@@ -141,6 +141,25 @@ const hiringPartnerSchema = new mongoose.Schema({
     default: "",
     trim: true,
   },
+  postingType: {
+    type: String,
+    enum: ["Job", "Internship", "Apprenticeship"],
+    default: "Job",
+  },
+  language: {
+    type: String,
+    trim: true,
+    default: "English",
+  },
+  showDetailsInUI: {
+    type: Boolean,
+    default: true,
+  },
+  status: {
+    type: String,
+    enum: ["Pending", "Approved", "Rejected"],
+    default: "Approved", 
+  },
   jobProfile: {
     type: String,
     trim: true,
@@ -322,6 +341,10 @@ const eventSchema = new mongoose.Schema(
       type: String,
       enum: ["public", "private"],
       default: "public",
+    },
+    language: {
+      type: String,
+      default: "English",
     },
     startDate: {
       type: Date,

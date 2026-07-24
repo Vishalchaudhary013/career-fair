@@ -4,7 +4,10 @@ import ThingsToKnow from "./ThingsToKnow";
 import FairStatistics from "../section/FairStatistics";
 import ReturnFairCompanies from "./ReturnFairCompanies";
 import { VscDebugBreakpointData } from "react-icons/vsc";
+import { t } from "../../utils/translations";
+
 const EventContent = ({ dbEvent, images }) => {
+  const lang = dbEvent?.language || "English";
   const [showAll, setShowAll] = useState(false);
   const [showAllImages, setShowAllImages] = useState(false);
 
@@ -40,7 +43,7 @@ const EventContent = ({ dbEvent, images }) => {
 
       {thingsToKnow.length > 0 && (
         <div id="thingsToKnown" className="bg-white mb-11 border border-gray-100 shadow-sm hover:shadow-md transition-shadow rounded-2xl p-6 scroll-mt-20">
-          <h2 className="text-2xl font-semibold mb-5 text-primary">Who Can Apply</h2>
+          <h2 className="text-2xl font-semibold mb-5 text-primary">{t(lang, "whoCanApply")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-x-8">
             {[thingsToKnow.slice(0, Math.ceil(thingsToKnow.length / 2)), thingsToKnow.slice(Math.ceil(thingsToKnow.length / 2))].map((col, ci) => (
               <div key={ci} className="space-y-4 text-sm font-medium text-gray-700">
@@ -58,7 +61,7 @@ const EventContent = ({ dbEvent, images }) => {
 
   
       <div id="about" className="bg-white p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow rounded-2xl mb-11 scroll-mt-20">
-        <h3 className="text-2xl mb-4 font-semibold text-primary">Fair Information</h3>
+        <h3 className="text-2xl mb-4 font-semibold text-primary">{t(lang, "fairInformation")}</h3>
         <style>{`
           .fair-desc-html * {
             max-height: none !important;
@@ -96,7 +99,7 @@ const EventContent = ({ dbEvent, images }) => {
           dangerouslySetInnerHTML={{ __html: descriptionHtml }}
         />
         <button onClick={() => setShowAll((s) => !s)} className="text-sm mt-6 text-center text-primary font-semibold hover:text-[#2a108a] transition-colors mx-auto block px-4 py-2 hover:underline decoration-primary hover:underline-offset-4  rounded-full" aria-expanded={showAll}>
-          {showAll ? "Read less" : "Read more"}
+          {showAll ? t(lang, "readLess") : t(lang, "readMore")}
         </button>
       </div>
 

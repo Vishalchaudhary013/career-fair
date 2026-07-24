@@ -12,16 +12,18 @@ import BannerPhotosTab from "../create-event/BannerPhotosTab";
 import TicketsTab from "../create-event/TicketsTab";
 import QuestionsTab from "../create-event/QuestionsTab";
 import { DATE_OPTS } from "../create-event/dateTimeHelpers";
+import { getAvailableLanguages } from "../services/eventService";
+import { t } from "../../utils/translations";
 import { X } from "lucide-react";
 import virtualEventImg from "../../asserts/virtual_event.png";
 import inPersonEventImg from "../../asserts/in_person_event.png";
 
 const stepMeta = {
-  "basic-information": { label: "Add Event Details - step 1/5", step: 1 },
-  "location":          { label: "Add Event Details - step 2/5", step: 2 },
-  "event-information": { label: "Add Event Details - step 3/5", step: 3 },
-  "banner-photos":     { label: "Add Event Details - step 4/5", step: 4 },
-  "question":          { label: "Registration Form - step 5/5", step: 5 },
+  "basic-information": { translationKey: "addEventDetailsStep", step: 1 },
+  "location":          { translationKey: "addEventDetailsStep", step: 2 },
+  "event-information": { translationKey: "addEventDetailsStep", step: 3 },
+  "banner-photos":     { translationKey: "addEventDetailsStep", step: 4 },
+  "question":          { translationKey: "registrationFormStep", step: 5 },
 };
 
 const CreateEventPage = () => {
@@ -32,6 +34,7 @@ const CreateEventPage = () => {
 
 
   const [eventType, setEventType] = useState(isEditing ? "in-person" : null);
+  const [languageSelected, setLanguageSelected] = useState(isEditing ? true : false);
 
   const handleSelectEventType = (type) => {
     setEventType(type);
@@ -55,6 +58,22 @@ const CreateEventPage = () => {
   const [startTime, setStartTime] = useState("17:00");
   const [endDate, setEndDate] = useState(DATE_OPTS[1]?.value ?? DATE_OPTS[0].value);
   const [endTime, setEndTime] = useState("18:00");
+  const [language, setLanguage] = useState("English");
+  const [availableLanguages, setAvailableLanguages] = useState(["English"]);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const langs = await getAvailableLanguages();
+        if (langs && langs.length > 0) {
+          setAvailableLanguages(langs);
+        }
+      } catch (err) {
+        console.error("Failed to fetch languages:", err);
+      }
+    };
+    fetchLanguages();
+  }, []);
 
   const [venueOption, setVenueOption] = useState("address");
   const [venueName, setVenueName] = useState("");
@@ -87,6 +106,8 @@ const CreateEventPage = () => {
     existingLogo: "",
     logoSourceMode: "upload",
     logoLink: "",
+    postingType: "Job",
+    showDetailsInUI: true,
     jobProfile: [{ title: "", type: "" }],
     qualification: "",
     candidatesRequired: "",
@@ -200,8 +221,10 @@ const CreateEventPage = () => {
   const currentStep = stepMeta[activeTab] ? {
     ...stepMeta[activeTab],
     label: activeTab === "location" && eventType === "virtual" 
-      ? "Add Joining Details - step 2/5" 
-      : stepMeta[activeTab].label
+      ? t(language, "addJoiningDetailsStep")
+      : activeTab === "question"
+      ? t(language, "registrationFormStep")
+      : t(language, "addEventDetailsStep").replace("{step}", stepMeta[activeTab].step)
   } : null;
 
   
@@ -218,6 +241,7 @@ const CreateEventPage = () => {
         setCategory(e.category || "");
         setFairType(e.fairType || "");
         setDescription(e.description || "");
+        if (e.language) setLanguage(e.language);
 
         if (e.startDate) {
           const sd = new Date(e.startDate);
@@ -257,14 +281,16 @@ const CreateEventPage = () => {
             companyLogoUrl: p.logo ? (p.logo.startsWith("http") ? p.logo : (p.logo.startsWith("companyLogo") || p.logo.startsWith("file-") ? `${SERVER_URL}/uploads/files/${p.logo}` : `${SERVER_URL}/uploads/logo/${p.logo}`)) : "",
             logoSourceMode: p.logoLink ? "link" : "upload",
             logoLink: p.logoLink || "",
+            postingType: p.postingType || "Job",
+            showDetailsInUI: p.showDetailsInUI !== undefined ? p.showDetailsInUI : true,
             jobProfile: (p.jobProfile && typeof p.jobProfile === 'string' && p.jobProfile.startsWith('[')) ? JSON.parse(p.jobProfile) : [{ title: p.jobProfile || "", type: p.jobType || "" }],
             qualification: p.qualification || "",
             candidatesRequired: p.candidatesRequired || "",
-            minSalary: p.minSalary || "",
-            maxSalary: p.maxSalary || "",
+            minSalary: p.minSalary ?? "",
+            maxSalary: p.maxSalary ?? "",
             salaryType: p.salaryType || "Per Month",
-            minExperience: p.minExperience || "",
-            maxExperience: p.maxExperience || "",
+            minExperience: p.minExperience ?? "",
+            maxExperience: p.maxExperience ?? "",
             experienceType: p.experienceType || "Years",
             description: p.description || "",
             locations: p.locations && p.locations.length > 0 ? p.locations : [{ state: p.jobLocationState || "", city: p.jobLocationCity || "", pincode: p.pincode || "" }],
@@ -391,6 +417,7 @@ const CreateEventPage = () => {
       fd.append("category", category);
       fd.append("fairType", fairType);
       fd.append("description", description);
+      fd.append("language", language);
       
       const startDateTime = new Date(`${startDate}T${startTime}`);
       const endDateTime = new Date(`${endDate}T${endTime}`);
@@ -494,6 +521,8 @@ const CreateEventPage = () => {
         companyName: c.companyName || "Unknown Company",
         logo: c.existingLogo || c.companyLogoUrl || "",
         logoLink: c.logoSourceMode === "link" ? c.logoLink : "",
+        postingType: c.postingType || "Job",
+        showDetailsInUI: c.showDetailsInUI !== false,
         jobProfile: JSON.stringify(c.jobProfile),
         qualification: c.qualification,
         candidatesRequired: Number(c.candidatesRequired) || 0,
@@ -573,6 +602,52 @@ const CreateEventPage = () => {
   };
 
   if (!isEditing && eventType === null) {
+    if (!languageSelected) {
+      return (
+        <div className="min-h-screen bg-[#F7F5FC] flex flex-col pt-[60px]">
+          <CreateEventHeader />
+          <div className="flex-1 flex flex-col justify-center items-center relative py-12 px-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-6 right-8 w-12 h-12 bg-primary hover:bg-primary/90 text-white flex items-center justify-center rounded-full shadow-md hover:shadow-lg transition cursor-pointer z-10"
+            >
+              <X size={24} />
+            </button>
+            
+            <div className="text-center mb-12 animate-in fade-in slide-in-from-top-4 duration-300">
+              <h1 className="text-4xl md:text-5xl font-semibold text-primary mb-3">
+                {t(language, "welcomeOrganizer")} {user?.hostName || user?.userName || "Organizer"}!
+              </h1>
+              <p className="text-xl md:text-2xl font-medium text-gray-500">
+                {t(language, "chooseLanguage")}
+              </p>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-lg w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-700">{t(language, "languageLabel")}</label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none focus:border-primary text-gray-700"
+                >
+                  {availableLanguages.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={() => setLanguageSelected(true)}
+                className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition shadow-md cursor-pointer"
+              >
+                {t(language, "continueBtn")}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#F7F5FC] flex flex-col pt-[60px]">
         <CreateEventHeader />
@@ -588,10 +663,10 @@ const CreateEventPage = () => {
     
           <div className="text-center mb-16 animate-in fade-in slide-in-from-top-4 duration-300">
             <h1 className="text-4xl md:text-5xl font-semibold  text-primary mb-3">
-              Hi {user?.hostName || user?.userName || "Organizer"}!
+              {t(language, "welcomeOrganizer")} {user?.hostName || user?.userName || "Organizer"}!
             </h1>
             <p className="text-xl md:text-2xl font-medium text-gray-500">
-              What kind of fair would you like to create?
+              {t(language, "whatKindOfFair")}
             </p>
           </div>
 
@@ -609,15 +684,15 @@ const CreateEventPage = () => {
                   className="h-full object-contain group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
-              <h2 className="text-xl font-bold text-primary mb-3  transition-colors">Virtual Fair</h2>
+              <h2 className="text-xl font-bold text-primary mb-3  transition-colors">{t(language, "virtualFair")}</h2>
               <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8 flex-1">
-                Host single and multi-track fairs including webinars, conferences and virtual exhibitions
+                {t(language, "virtualFairDesc")}
               </p>
               <button 
                 onClick={(e) => { e.stopPropagation(); handleSelectEventType("virtual"); }}
                 className="w-full py-3 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl transition shadow-sm hover:shadow-md cursor-pointer"
               >
-                Select
+                {t(language, "continueBtn")}
               </button>
             </div>
 
@@ -633,15 +708,15 @@ const CreateEventPage = () => {
                   className="h-full object-contain group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
-              <h2 className="text-xl font-bold text-primary mb-3  transition-colors">In-Person Fair</h2>
+              <h2 className="text-xl font-bold text-primary mb-3 transition-colors">{t(language, "inPersonFair")}</h2>
               <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8 flex-1">
-                Conduct and manage physical fairs such as marathons and workshops
+                {t(language, "inPersonFairDesc")}
               </p>
               <button 
                 onClick={(e) => { e.stopPropagation(); handleSelectEventType("in-person"); }}
                 className="w-full py-3 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl transition shadow-sm hover:shadow-md cursor-pointer"
               >
-                Select
+                {t(language, "continueBtn")}
               </button>
             </div>
           </div>
@@ -655,7 +730,7 @@ const CreateEventPage = () => {
     <div className="flex flex-col bg-white" style={{ height: "100vh" }}>
       <CreateEventHeader />
       <div className="flex flex-col lg:flex-row flex-1 overflow-hidden" style={{ marginTop: "60px", height: "calc(100vh - 60px)" }}>
-        <CreateEventSidebar activeTab={activeTab} setActiveTab={setActiveTab} maxReachedStep={maxReachedStep} eventType={eventType} />
+        <CreateEventSidebar activeTab={activeTab} setActiveTab={setActiveTab} maxReachedStep={maxReachedStep} eventType={eventType} language={language} />
 
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 sm:px-12 py-6 sm:py-10">
@@ -668,6 +743,8 @@ const CreateEventPage = () => {
                 startTime={startTime} setStartTime={setStartTime}
                 endDate={endDate} setEndDate={setEndDate}
                 endTime={endTime} setEndTime={setEndTime}
+                language={language} setLanguage={setLanguage}
+                availableLanguages={availableLanguages}
               />
             )}
 
@@ -676,6 +753,7 @@ const CreateEventPage = () => {
                 <VirtualJoiningTab
                   venueName={venueName} setVenueName={setVenueName}
                   city={city} setCity={setCity}
+                  language={language}
                 />
               ) : (
                 <LocationTab
@@ -690,6 +768,7 @@ const CreateEventPage = () => {
                   nearestTrainStation={nearestTrainStation} setNearestTrainStation={setNearestTrainStation}
                   locationLink={locationLink} setLocationLink={setLocationLink}
                   resetLocation={resetLocation}
+                  language={language}
                 />
               )
             )}
@@ -707,6 +786,7 @@ const CreateEventPage = () => {
                 faqs={faqs} addFaq={addFaq} removeFaq={removeFaq} updateFaq={updateFaq} toggleFaq={toggleFaq}
                 extraDetails={extraDetails} setExtraDetails={setExtraDetails}
                 companyListDocumentUrl={companyListDocumentUrl} setCompanyListDocumentUrl={setCompanyListDocumentUrl}
+                language={language}
               />
             )}
 
@@ -714,6 +794,7 @@ const CreateEventPage = () => {
               <BannerPhotosTab
                 bannerUrl={bannerUrl} setBannerUrl={setBannerUrl}
                 logoUrl={logoUrl} setLogoUrl={setLogoUrl}
+                language={language}
               />
             )}
 
@@ -730,19 +811,20 @@ const CreateEventPage = () => {
                 questionStatus={questionStatus} setQuestionStatus={setQuestionStatus}
                 questionTickets={questionTickets} setQuestionTickets={setQuestionTickets}
                 fileUploadFields={fileUploadFields} setFileUploadFields={setFileUploadFields}
+                language={language}
               />
             )}
           </div>
 
           {/* Sticky Footer */}
           <footer className="shrink-0 bg-[#eeeef8] border-t border-[#d4d4ec] px-4 sm:px-10 py-4 flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-700">({currentStep?.label ?? "Add Fair Details"})</span>
+            <span className="text-sm font-semibold text-gray-700">({t(language, "addEventDetails")} - {t(language, "step")} {currentStep?.step ?? 1}/5)</span>
             <div className="flex items-center gap-3">
               {currentStep?.step > 1 && (
-                <button onClick={handleBack} className="border border-primary text-primary text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-secondary/5 transition cursor-pointer">Back</button>
+                <button onClick={handleBack} className="border border-primary text-primary text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-secondary/5 transition cursor-pointer">{t(language, "backBtn")}</button>
               )}
               <button onClick={handleNext} disabled={isSubmitting} className="bg-secondary hover:bg-secondary/90 disabled:bg-secondary/70 text-white text-sm font-semibold px-7 py-2.5 rounded-lg transition shadow-sm cursor-pointer">
-                {isSubmitting ? "Publishing..." : activeTab === "basic-information" ? "Save & Next" : activeTab === "question" ? "Publish Fair" : "Next"}
+                {isSubmitting ? t(language, "publishingBtn") : activeTab === "basic-information" ? t(language, "saveAndNext") : activeTab === "question" ? t(language, "publishFairBtn") : t(language, "nextBtn")}
               </button>
             </div>
           </footer>

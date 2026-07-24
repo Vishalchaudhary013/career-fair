@@ -1,4 +1,5 @@
 import Event from "../models/eventModel.js";
+import { Language } from "../models/configModel.js";
 import {
   createEventServices,
   getAllEventsServices,
@@ -95,7 +96,7 @@ export const joinAsPartner = async (req, res) => {
       positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
       companyType, contactPersonName, designation, mobileNumber, email,
       yourDetailsJobRole, yourDetailsTotalOpenings, yourDetailsState, yourDetailsCity,
-      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType
+      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType, postingType, showDetailsInUI
     } = req.body;
 
     const event = await Event.findById(id);
@@ -113,6 +114,8 @@ export const joinAsPartner = async (req, res) => {
       description: description || "",
       logo: companyLogo,
       logoLink: logoLink || "",
+      postingType: postingType || "Job",
+      showDetailsInUI: showDetailsInUI !== undefined ? (showDetailsInUI === 'true' || showDetailsInUI === true) : true,
       jobType, qualification, minSalary, maxSalary, minExperience, maxExperience,
       jobLocationState, jobLocationCity, pincode, jobExpiryDate, hiringProcess,
       positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
@@ -123,6 +126,7 @@ export const joinAsPartner = async (req, res) => {
       locations: locations ? (typeof locations === 'string' ? JSON.parse(locations) : locations) : [],
       postedBy: req.user._id,
       postedByEmail: req.user.email,
+      status: "Pending",
     };
 
     event.hiringPartners.push(newPartner);
@@ -195,7 +199,7 @@ export const updateEmployerJob = async (req, res) => {
       positionOpenFor, otherBenefit, openForPhysicallyChallenged, organisationName,
       companyType, contactPersonName, designation, mobileNumber, email,
       yourDetailsJobRole, yourDetailsTotalOpenings, yourDetailsState, yourDetailsCity,
-      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType
+      yourDetailsMinSalary, yourDetailsMaxSalary, locations, salaryType, experienceType, postingType, showDetailsInUI
     } = req.body;
     const userId = req.user._id;
 
@@ -219,6 +223,8 @@ export const updateEmployerJob = async (req, res) => {
     if (candidatesRequired !== undefined) partner.candidatesRequired = parseInt(candidatesRequired, 10) || 0;
     if (description !== undefined) partner.description = description;
     if (logoLink !== undefined) partner.logoLink = logoLink;
+    if (postingType !== undefined) partner.postingType = postingType;
+    if (showDetailsInUI !== undefined) partner.showDetailsInUI = (showDetailsInUI === 'true' || showDetailsInUI === true);
     if (jobType !== undefined) partner.jobType = jobType;
     if (qualification !== undefined) partner.qualification = qualification;
     if (minSalary !== undefined) partner.minSalary = minSalary;
@@ -296,5 +302,78 @@ export const deleteEmployerJob = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+import sendEmail from '../utils/sendEmail.js';
+
+export const updateJobStatus = async (req, res) => {
+  try {
+    const { id, jobId } = req.params;
+    const { status } = req.body; // "Approved" or "Rejected"
+
+    if (!["Approved", "Rejected"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    if (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
+      return res.status(403).json({ success: false, message: "Not authorized to update job status" });
+    }
+
+    const event = await Event.findById(id);
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+
+    const job = event.hiringPartners.id(jobId);
+    if (!job) return res.status(404).json({ success: false, message: "Job not found" });
+
+    job.status = status;
+    await event.save();
+
+    // Send email notification
+    if (job.postedByEmail) {
+      const subject = `Your Job Posting was ${status}: ${event.fairName}`;
+      const message = `
+        <p>Hello,</p>
+        <p>Your recent job posting <strong>${job.companyName}</strong> for the event <strong>${event.fairName}</strong> has been <strong>${status}</strong> by the organizer.</p>
+        <p>Thank you for participating.</p>
+      `;
+      try {
+        await sendEmail({ email: job.postedByEmail, subject, html: message });
+      } catch (err) {
+        console.error("Failed to send approval email:", err);
+      }
+    }
+
+    return res.status(200).json({ success: true, message: `Job ${status} successfully`, data: job });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAvailableLanguages = async (req, res) => {
+  try {
+    let languages = await Language.find().sort({ name: 1 });
+    if (languages.length === 0) {
+      const defaultLangs = [
+        "English", "Hindi", "Assamese", "Bengali", "Bodo", 
+        "Dogri", "Gujarati", "Kannada", "Kashmiri", "Konkani", 
+        "Maithili", "Malayalam", "Manipuri", "Marathi", "Nepali", 
+        "Odia", "Punjabi", "Sanskrit", "Santali", "Sindhi", 
+        "Tamil", "Telugu", "Urdu"
+      ];
+      const docs = defaultLangs.map(name => ({ name }));
+      await Language.insertMany(docs);
+      languages = await Language.find().sort({ name: 1 });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: languages.map(l => l.name)
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error"
+    });
   }
 };

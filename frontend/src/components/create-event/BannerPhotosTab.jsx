@@ -1,9 +1,12 @@
 import { Upload, Plus, X } from "lucide-react";
 import { useState } from "react";
 
+import { t } from "../../utils/translations";
+
 const BannerPhotosTab = ({
   bannerUrl, setBannerUrl,
   logoUrl, setLogoUrl,
+  language
 }) => {
 
   const handleBannerUpload = (e) => {
@@ -25,8 +28,8 @@ const BannerPhotosTab = ({
       
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-primary">Fair Banner</h2>
-          <p className="text-sm text-gray-500 mt-1">This is the main image shown on the Fair details page and cards.</p>
+          <h2 className="text-lg font-bold text-primary">{t(language, "fairBanner")}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t(language, "fairBannerDesc")}</p>
         </div>
 
         {bannerUrl ? (
@@ -34,10 +37,10 @@ const BannerPhotosTab = ({
             <img src={bannerUrl.preview || bannerUrl} alt="Fair Banner" className="w-full aspect-[21/9] object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
               <label className="bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-100 transition">
-                Change Image
+                {t(language, "changeImage")}
                 <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
               </label>
-              <button onClick={() => setBannerUrl("")} className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-secondary/90 transition">Remove</button>
+              <button onClick={() => setBannerUrl("")} className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-secondary/90 transition">{t(language, "remove")}</button>
             </div>
           </div>
         ) : (
@@ -45,8 +48,8 @@ const BannerPhotosTab = ({
             <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
               <Upload size={20} />
             </div>
-            <span className="text-sm font-semibold text-gray-800">Click to upload banner</span>
-            <span className="text-xs text-gray-500 mt-1">Recommended size: 1200 x 600px</span>
+            <span className="text-sm font-semibold text-gray-800">{t(language, "clickToUploadBanner")}</span>
+            <span className="text-xs text-gray-500 mt-1">{t(language, "recommendedBannerSize")}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
           </label>
         )}
@@ -55,8 +58,8 @@ const BannerPhotosTab = ({
      
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-primary">Fair Logo</h2>
-          <p className="text-sm text-gray-500 mt-1">Upload a square logo for your Fair or organization.</p>
+          <h2 className="text-lg font-bold text-primary">{t(language, "fairLogo")}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t(language, "fairLogoDesc")}</p>
         </div>
 
         {logoUrl ? (
@@ -64,10 +67,10 @@ const BannerPhotosTab = ({
             <img src={logoUrl.preview || logoUrl} alt="Fair Logo" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 flex-col">
               <label className="bg-white text-gray-800 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer hover:bg-gray-100 transition">
-                Change
+                {t(language, "change")}
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </label>
-              <button onClick={() => setLogoUrl("")} className="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer hover:bg-secondary/90 transition">Remove</button>
+              <button onClick={() => setLogoUrl("")} className="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer hover:bg-secondary/90 transition">{t(language, "remove")}</button>
             </div>
           </div>
         ) : (
@@ -75,8 +78,8 @@ const BannerPhotosTab = ({
             <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
               <Upload size={18} />
             </div>
-            <span className="text-sm font-semibold text-gray-800">Upload logo</span>
-            <span className="text-[10px] text-gray-500 mt-1">Recommended: 400 x 400px</span>
+            <span className="text-sm font-semibold text-gray-800">{t(language, "uploadLogoRec")}</span>
+            <span className="text-[10px] text-gray-500 mt-1">{t(language, "recommendedLogoSize")}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
           </label>
         )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MapPin, RotateCcw, ExternalLink, CheckCircle2 } from "lucide-react";
+import { t } from "../../utils/translations";
 
 const extractCoordsFromUrl = (url) => {
   if (!url) return null;
@@ -33,6 +34,7 @@ const LocationTab = ({
   locationLink,
   setLocationLink,
   resetLocation,
+  language,
 }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -135,11 +137,11 @@ const LocationTab = ({
   return (
   <div className="w-full space-y-7 animate-in fade-in duration-200">
     <div>
-      <h3 className="text-sm font-semibold text-primary mb-3">Venue Details</h3>
+      <h3 className="text-sm font-semibold text-primary mb-3">{t(language, "venueDetails")}</h3>
       <div className="flex flex-wrap items-center gap-6 sm:gap-8">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="venueOption" value="address" checked={venueOption === "address"} onChange={() => setVenueOption("address")} className="w-4 h-4 accent-primary cursor-pointer" />
-          <span className="text-sm font-medium text-gray-700">Add Venue Address</span>
+          <span className="text-sm font-medium text-gray-700">{t(language, "addVenueAddress")}</span>
         </label>
         {/* <label className="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="venueOption" value="online" checked={venueOption === "online"} onChange={() => { setVenueOption("online"); setCity("Online"); }} className="w-4 h-4 accent-primary cursor-pointer" />
@@ -147,7 +149,7 @@ const LocationTab = ({
         </label> */}
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="venueOption" value="not-decided" checked={venueOption === "not-decided"} onChange={() => setVenueOption("not-decided")} className="w-4 h-4 accent-primary cursor-pointer" />
-          <span className="text-sm font-medium text-gray-700">Venue not decided</span>
+          <span className="text-sm font-medium text-gray-700">{t(language, "venueNotDecided")}</span>
         </label>
       </div>
     </div>
@@ -155,12 +157,12 @@ const LocationTab = ({
     {venueOption === "address" && (
       <>
         <div>
-          <h3 className="text-sm font-semibold text-primary mb-3">Fair Venue</h3>
+          <h3 className="text-sm font-semibold text-primary mb-3">{t(language, "fairVenue")}</h3>
           <div className="space-y-3 w-full">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Fair Venue Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "fairVenueName")}</label>
               <div className="relative">
-                <input type="text" placeholder="Venue Name (Search to locate on map)" value={venueName} onChange={(e) => { setVenueName(e.target.value); setShowVenueSuggestions(true); }} onFocus={() => setShowVenueSuggestions(true)} onBlur={() => setTimeout(() => setShowVenueSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                <input type="text" placeholder={t(language, "fairVenueName")} value={venueName} onChange={(e) => { setVenueName(e.target.value); setShowVenueSuggestions(true); }} onFocus={() => setShowVenueSuggestions(true)} onBlur={() => setTimeout(() => setShowVenueSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
                 {showVenueSuggestions && venueSuggestions.length > 0 && (
                   <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     {venueSuggestions.map((s) => (
@@ -173,18 +175,18 @@ const LocationTab = ({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Address Line 1</label>
-              <input type="text" placeholder="Address Line 1" value={street1} onChange={(e) => setStreet1(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "addressLine1")}</label>
+              <input type="text" placeholder={t(language, "addressLine1")} value={street1} onChange={(e) => setStreet1(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Address Line 2</label>
-              <input type="text" placeholder="Address Line 2" value={street2} onChange={(e) => setStreet2(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+              <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "addressLine2")}</label>
+              <input type="text" placeholder={t(language, "addressLine2")} value={street2} onChange={(e) => setStreet2(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">City</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "cityLabel")}</label>
                 <div className="relative">
-                  <input type="text" placeholder="City" value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                  <input type="text" placeholder={t(language, "cityLabel")} value={city} onChange={handleCityChange} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {suggestions.map((s) => (
@@ -197,8 +199,8 @@ const LocationTab = ({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Pin Code / Zip Code</label>
-                <input type="text" placeholder="Pin Code / Zip Code" value={pinCode || ""} onChange={(e) => setPinCode(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "pinCodeLabel")}</label>
+                <input type="text" placeholder={t(language, "pinCodeLabel")} value={pinCode || ""} onChange={(e) => setPinCode(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
               </div>
             </div>
             <div className="w-full space-y-2 mb-5">
@@ -247,20 +249,20 @@ const LocationTab = ({
               )}
             </div>
             <button onClick={resetLocation} className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline cursor-pointer">
-          <RotateCcw size={13} /> Reset Location
+          <RotateCcw size={13} /> {t(language, "resetLocationBtn")}
         </button>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Bus Stop</label>
-                <input type="text" placeholder="Nearest Bus Stop" value={nearestBusStop || ""} onChange={(e) => setNearestBusStop(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "nearestBusStopLabel")}</label>
+                <input type="text" placeholder={t(language, "nearestBusStopLabel")} value={nearestBusStop || ""} onChange={(e) => setNearestBusStop(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Airport</label>
-                <input type="text" placeholder="Nearest Airport" value={nearestAirport || ""} onChange={(e) => setNearestAirport(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "nearestAirportLabel")}</label>
+                <input type="text" placeholder={t(language, "nearestAirportLabel")} value={nearestAirport || ""} onChange={(e) => setNearestAirport(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nearest Train Station</label>
-                <input type="text" placeholder="Nearest Train Station" value={nearestTrainStation || ""} onChange={(e) => setNearestTrainStation(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t(language, "nearestTrainStationLabel")}</label>
+                <input type="text" placeholder={t(language, "nearestTrainStationLabel")} value={nearestTrainStation || ""} onChange={(e) => setNearestTrainStation(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition" />
               </div>
             </div>
             
@@ -268,7 +270,7 @@ const LocationTab = ({
         </div>
         
         <div>
-          <h3 className="text-sm font-semibold text-primary mb-3">Location Map</h3>
+          <h3 className="text-sm font-semibold text-primary mb-3">{t(language, "locationMapLabel")}</h3>
           <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-100 w-full h-[280px]">
             {(!city || !city.trim()) && (!venueName || !venueName.trim()) && (!locationLink || !locationLink.trim()) && (
               <div className="absolute inset-0 z-10 bg-black/40 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SERVER_URL } from "../../config";
+import { t } from "../../utils/translations";
 
 const CompanyCard = ({ jobCard }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +15,7 @@ const CompanyCard = ({ jobCard }) => {
     candidatesRequired = "N/A",
     location = "",
     jobLocation = "",
+    language = "English",
   } = jobCard || {};
 
   const displayLogo = logoLink || logo || companyLogo;
@@ -59,7 +61,7 @@ const CompanyCard = ({ jobCard }) => {
          
           <div className="cardOverlay">
             <button className="viewDetailBtn" onClick={openModal}>
-              View Details
+              {t(language, "viewDetails")}
             </button>
           </div>
         </div>
@@ -76,16 +78,16 @@ const CompanyCard = ({ jobCard }) => {
 
             <h2>{companyName}</h2>
             <p>
-              <strong>Job Location:</strong> {displayLocation}
+              <strong>{t(language, "jobLocation")}:</strong> {displayLocation}
             </p>
             <p>
-              <strong>Total Candidates Required:</strong> {candidatesRequired}
+              <strong>{t(language, "totalCandidatesRequired")}:</strong> {candidatesRequired}
             </p>
 
            
             <div className="modalDescription">
               <p className="jobProfileHeading">
-                <strong>Job Profile:</strong>
+                <strong>{t(language, "jobProfileText")}</strong>
               </p>
               {(displayJobProfile || "").split("\n").map((line, i) => (
                 <p className="jobProfile" key={i}>
@@ -96,7 +98,7 @@ const CompanyCard = ({ jobCard }) => {
 
             
             <button className="modalCancelBtn" onClick={closeModal}>
-              Cancel
+              {t(language, "cancel")}
             </button>
           </div>
         </div>

@@ -12,13 +12,18 @@ import {
   Eye,
   EyeOff,
   Search,
-  Settings
+  Settings,
+  Briefcase,
+  ClipboardList
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import { forgotPassword } from "../services/authApi";
-import { getDashboardStats, getAllUsers, deleteUser, getAllEvents, deleteEvent, impersonateUser, changeUserPassword, updateSuperAdminProfile, approveAdmin } from "../services/superAdminService";
+import { getMediaUrl } from "../services/api";
+import { getDashboardStats, getAllUsers, deleteUser, getAllEvents, deleteEvent, impersonateUser, changeUserPassword, updateSuperAdminProfile, approveAdmin, getAllBookings } from "../services/superAdminService";
 import EventsSection from "../admin-dashboard/EventsSection";
+import AdminJobsSection from "../admin-dashboard/AdminJobsSection";
 import CreateEventHeader from "../create-event/CreateEventHeader";
+import CandidateDetailsModal from "../admin-dashboard/CandidateDetailsModal";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -28,6 +33,9 @@ const SuperAdminDashboard = () => {
   const [stats, setStats] = useState({ users: 0, fairs: 0, bookings: 0 });
   const [users, setUsers] = useState([]);
   const [events, setEvents] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+  const [candidatesPage, setCandidatesPage] = useState(1);
+  const candidatesPerPage = 10;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,6 +51,7 @@ const SuperAdminDashboard = () => {
 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedSuperEvents, setSelectedSuperEvents] = useState([]);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const [profileEmail, setProfileEmail] = useState("");
   const [profileCurrentPassword, setProfileCurrentPassword] = useState("");
@@ -127,12 +136,15 @@ const SuperAdminDashboard = () => {
       } else if (["Users", "Admins", "Employers"].includes(activeSection)) {
         const data = await getAllUsers();
         setUsers(data);
-      } else if (activeSection === "AllEvents") {
+      } else if (activeSection === "AllEvents" || activeSection === "EmployerJobs") {
         const data = await getAllEvents();
         setEvents(data);
       } else if (activeSection === "MyEvents") {
         const data = await getAllEvents();
         setEvents(data.filter(e => !e.organizer || e.organizer === user?._id || e.organizer?._id === user?._id || !e.organizer));
+      } else if (activeSection === "Candidates") {
+        const data = await getAllBookings();
+        setCandidates(data);
       }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load data.");
@@ -368,6 +380,8 @@ const SuperAdminDashboard = () => {
     { key: "Users", label: "Users", icon: <Users size={16} /> },
     { key: "MyEvents", label: "Fairs", icon: <LayoutGrid size={16} /> },
     { key: "AllEvents", label: "All Fairs", icon: <CalendarDays size={16} /> },
+    { key: "EmployerJobs", label: "Employer Jobs", icon: <Briefcase size={16} /> },
+    { key: "Candidates", label: "Candidates", icon: <ClipboardList size={16} /> },
     { key: "Profile", label: "Manage Profile", icon: <Settings size={16} /> }
   ];
 
@@ -686,6 +700,134 @@ const SuperAdminDashboard = () => {
       </div>
     </div>
   );
+
+  const renderCandidatesTable = () => {
+    const totalPages = Math.max(1, Math.ceil(candidates.length / candidatesPerPage));
+    const startIndex = (candidatesPage - 1) * candidatesPerPage;
+    const paginatedCandidates = candidates.slice(startIndex, startIndex + candidatesPerPage);
+
+    return (
+      <div className="bg-white border border-[#E2EAFC] overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-[#E2EAFC] flex justify-between items-center bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <h2 className="font-semibold text-primary">Candidates</h2>
+            <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2.5 py-0.5 rounded-full">{candidates.length}</span>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 border-b border-[#E2EAFC] text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Name</th>
+                <th className="px-4 py-3 font-semibold">College Name</th>
+                <th className="px-4 py-3 font-semibold">Branch</th>
+                <th className="px-4 py-3 font-semibold">Fair Name</th>
+                <th className="px-4 py-3 font-semibold text-center">Resume</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E2EAFC]">
+              {paginatedCandidates.map(candidate => {
+                const answers = candidate.answers || {};
+                const questions = candidate.event?.questions || [];
+                
+                let name = candidate.user?.name || candidate.user?.userName || (candidate.email ? candidate.email.split('@')[0] : "N/A");
+                let college = "N/A";
+                let branch = "N/A";
+                let resume = null;
+
+                const qMap = {};
+                questions.forEach(q => {
+                  qMap[q._id] = q.title.toLowerCase();
+                  if (q.id) qMap[q.id] = q.title.toLowerCase();
+                });
+
+                Object.keys(answers).forEach(key => {
+                  const lowerKey = key.toLowerCase();
+                  const title = qMap[key] || lowerKey;
+                  const val = answers[key];
+
+                  if (title.includes("name") && !title.includes("company") && !title.includes("college") && !title.includes("university") && !title.includes("institute") && !title.includes("branch")) {
+                    name = val;
+                  }
+                  if (lowerKey === 'q_name' && val) name = val;
+
+                  if (title.includes("college") || title.includes("university") || title.includes("institute")) {
+                    college = val;
+                  }
+                  
+                  if (title.includes("branch") || title.includes("discipline") || title.includes("specialization") || title.includes("degree") || title.includes("qualification")) {
+                    branch = val;
+                  }
+                  
+                  if (typeof val === 'string' && (val.includes("cloudinary") || val.includes("http") || val.startsWith('/uploads/'))) {
+                    if (title.includes("resume") || title.includes("cv") || title.includes("document") || title.includes("portfolio")) {
+                      resume = val;
+                    }
+                  }
+                });
+
+                return (
+                  <tr key={candidate._id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-800">{name}</td>
+                    <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate" title={college}>{college}</td>
+                    <td className="px-4 py-3 text-slate-600 max-w-[150px] truncate" title={branch}>{branch}</td>
+                    <td className="px-4 py-3 text-slate-600">{candidate.event?.fairName || 'N/A'}</td>
+                    <td className="px-4 py-3 text-center">
+                      {resume ? (
+                        <a href={getMediaUrl(resume)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs font-medium">View Resume</a>
+                      ) : (
+                        <span className="text-slate-400 text-xs">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button 
+                        onClick={() => setSelectedCandidate(candidate)}
+                        className="text-primary hover:text-primary/80 bg-primary/10 p-1.5 rounded-md transition"
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {candidates.length === 0 && (
+                <tr><td colSpan="6" className="text-center py-8 text-slate-500">No candidates found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 px-2 pb-4">
+            <p className="text-sm text-slate-500 font-medium">
+              Showing <span className="font-bold text-slate-900">{candidates.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-bold text-slate-900">{Math.min(startIndex + candidatesPerPage, candidates.length)}</span> of <span className="font-bold text-slate-900">{candidates.length}</span> candidates
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCandidatesPage(prev => Math.max(1, prev - 1))}
+                disabled={candidatesPage === 1}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Previous
+              </button>
+              <span className="text-sm font-semibold text-slate-900 mx-2">
+                Page {candidatesPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCandidatesPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={candidatesPage === totalPages}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (!user || user.role !== "SUPER_ADMIN") return null;
 
@@ -1039,6 +1181,15 @@ const SuperAdminDashboard = () => {
                     </form>
                   </div>
                 )}
+
+                {activeSection === "EmployerJobs" && (
+                  <AdminJobsSection 
+                    events={events} 
+                    setEvents={setEvents} 
+                  />
+                )}
+
+                {activeSection === "Candidates" && renderCandidatesTable()}
               </>
             )}
             </div>
@@ -1046,6 +1197,12 @@ const SuperAdminDashboard = () => {
           
         </div>
       </div>
+      <CandidateDetailsModal 
+        isOpen={!!selectedCandidate} 
+        onClose={() => setSelectedCandidate(null)} 
+        booking={selectedCandidate} 
+        eventData={selectedCandidate?.event} 
+      />
     </div>
     </>
   );

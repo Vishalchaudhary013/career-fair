@@ -7,8 +7,10 @@ import {
   getAllEvents,
   joinAsPartner,
   updateEmployerJob,
-  deleteEmployerJob
+  deleteEmployerJob,
+  getAvailableLanguages
 } from "../services/eventService";
+import { t } from "../../utils/translations";
 import { getMediaUrl } from "../services/api";
 import {
   FiBriefcase,
@@ -94,8 +96,22 @@ const EmployerDashboard = () => {
     positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
     companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
     yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
-    yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
+    yourDetailsMinSalary: "", yourDetailsMaxSalary: "", language: "English"
   });
+
+  const [availableLanguages, setAvailableLanguages] = useState(["English"]);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const langs = await getAvailableLanguages();
+        if (langs && langs.length > 0) setAvailableLanguages(langs);
+      } catch (e) {
+        console.error("Failed to fetch languages", e);
+      }
+    };
+    fetchLanguages();
+  }, []);
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [formError, setFormError] = useState("");
@@ -184,8 +200,9 @@ const EmployerDashboard = () => {
         openForPhysicallyChallenged: job.openForPhysicallyChallenged || "", organisationName: job.organisationName || "",
         companyType: job.companyType || "", contactPersonName: job.contactPersonName || "", designation: job.designation || "",
         mobileNumber: job.mobileNumber || "", email: job.email || "", yourDetailsJobRole: job.yourDetailsJobRole || "",
-        yourDetailsTotalOpenings: job.yourDetailsTotalOpenings || "", yourDetailsState: job.yourDetailsState || "",
-        yourDetailsCity: job.yourDetailsCity || "", yourDetailsMinSalary: job.yourDetailsMinSalary || "", yourDetailsMaxSalary: job.yourDetailsMaxSalary || ""
+        yourDetailsCity: job.yourDetailsCity || "", yourDetailsMinSalary: job.yourDetailsMinSalary || "", yourDetailsMaxSalary: job.yourDetailsMaxSalary || "",
+        showDetailsInUI: job.showDetailsInUI !== undefined ? job.showDetailsInUI : true,
+        postingType: job.postingType || "Job"
       });
       if (job.logo) {
         setLogoSourceMode("upload");
@@ -208,7 +225,7 @@ const EmployerDashboard = () => {
         positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
         companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
         yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
-        yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
+        yourDetailsMinSalary: "", yourDetailsMaxSalary: "", showDetailsInUI: true, postingType: "Job"
       });
       setLogoSourceMode("upload");
       setLogoPreview("");
@@ -229,7 +246,7 @@ const EmployerDashboard = () => {
       positionOpenFor: [], otherBenefit: "", openForPhysicallyChallenged: "", organisationName: "",
       companyType: "", contactPersonName: "", designation: "", mobileNumber: "", email: "",
       yourDetailsJobRole: "", yourDetailsTotalOpenings: "", yourDetailsState: "", yourDetailsCity: "",
-      yourDetailsMinSalary: "", yourDetailsMaxSalary: ""
+      yourDetailsMinSalary: "", yourDetailsMaxSalary: "", showDetailsInUI: true, postingType: "Job"
     });
     setLogoFile(null);
     setLogoPreview("");
@@ -264,7 +281,7 @@ const EmployerDashboard = () => {
     try {
       if (modalMode === "create") {
         await joinAsPartner(currentFair._id, uploadData);
-        triggerSuccessNotification(`Successfully added your job posting for "${currentFair.fairName}"!`);
+        triggerSuccessNotification("Your job posting request has been sent to the admin. You will receive an email notification once it is approved.");
       } else {
         await updateEmployerJob(currentFair._id, currentJobId, uploadData);
         triggerSuccessNotification("Job posting updated successfully!");
@@ -424,9 +441,22 @@ const EmployerDashboard = () => {
 
               <div className="flex-grow min-h-0 overflow-y-auto hide-scrollbar ">
                 {successMsg && (
-                  <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800 font-medium text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-3 duration-300">
-                    <FiCheckCircle size={18} className="text-emerald-500 flex-shrink-0" />
-                    <span>{successMsg}</span>
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl flex flex-col items-center max-w-sm w-full text-center animate-in zoom-in-95 duration-300">
+                      <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-4">
+                        <FiCheckCircle size={32} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 mb-2">Request Submitted</h3>
+                      <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                        {successMsg}
+                      </p>
+                      <button 
+                        onClick={() => setSuccessMsg("")}
+                        className="mt-6 w-full py-3 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-xl transition cursor-pointer"
+                      >
+                        Okay
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -787,7 +817,7 @@ const EmployerDashboard = () => {
             <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-xs">
-                  {modalMode === "create" ? "Add Company Job Profile" : "Edit Job Profile"}
+                  {modalMode === "create" ? t(formData.language, "addCompanyJobProfile") : t(formData.language, "editJobProfile")}
                 </h3>
                 <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-xs">
                   Fair: {currentFair?.fairName}
@@ -809,9 +839,30 @@ const EmployerDashboard = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">Company Logo</label>
+              <div className="flex gap-4 mb-6 mt-2">
+                {["Job", "Internship", "Apprenticeship"].map(type => (
+                  <label key={type} className={`cursor-pointer flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold border-2 transition ${(formData.postingType || "Job") === type ? "border-primary bg-primary/5 text-primary" : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100"}`}>
+                    <input type="radio" className="hidden" checked={(formData.postingType || "Job") === type} onChange={() => setFormData({ ...formData, postingType: type })} />
+                    {type}
+                  </label>
+                ))}
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">{t(formData.language, "jobLanguage")}</label>
+                <select
+                  value={formData.language || "English"}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
+                >
+                  {availableLanguages.map((lang) => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+
+               <div>
+                    <label className="block text-xs font-extrabold text-slate-600 uppercase mb-2">{t(formData.language, "companyLogo")}</label>
                     <div className="flex gap-2 mb-3">
                       <button
                         type="button"
@@ -824,7 +875,7 @@ const EmployerDashboard = () => {
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                       >
-                        Upload File
+                        {t(formData.language, "uploadFile")}
                       </button>
                       <button
                         type="button"
@@ -837,7 +888,7 @@ const EmployerDashboard = () => {
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                       >
-                        Image Link
+                        {t(formData.language, "imageLink")}
                       </button>
                     </div>
 
@@ -870,7 +921,7 @@ const EmployerDashboard = () => {
                         <label className="flex-grow flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/50 cursor-pointer hover:bg-slate-50 hover:border-primary/45 transition h-16">
                           <div className="flex flex-col items-center text-center">
                             <FiUpload size={14} className="text-slate-400 mb-1" />
-                            <span className="text-[9px] font-bold text-primary">Upload logo</span>
+                            <span className="text-[9px] font-bold text-primary">{t(formData.language, "uploadLogo")}</span>
                           </div>
                           <input
                             type="file"
@@ -896,19 +947,18 @@ const EmployerDashboard = () => {
                       )}
                     </div>
                   </div>
-              </div>
 
               <div className="border-t border-slate-200 pt-4">
-                  <h4 className="text-sm font-bold text-slate-800 mb-4">Job Details</h4>
+                  <h4 className="text-sm font-bold text-slate-800 mb-4">{formData.postingType || "Job"} {t(formData.language, "jobDetailsTitle")}</h4>
                   
                   <div className="mb-4">
                       {formData.jobProfile.map((job, index) => (
                         <div key={index} className="flex flex-col sm:flex-row gap-4 mb-4 items-end">
                           <div className="flex-1">
-                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Title </label>
+                            <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "jobTitleLabel")} </label>
                             <input
                               type="text"
-                              placeholder="Job Title"
+                              placeholder={t(formData.language, "jobTitleLabel")}
                               value={job.title}
                               onChange={(e) => {
                                 const newProfiles = [...formData.jobProfile];
@@ -919,7 +969,7 @@ const EmployerDashboard = () => {
                             />
                           </div>
                           <div className="flex-1">
-                            <label className="block text-xs font-bold text-slate-600 mb-1">Job Type</label>
+                            <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "jobTypeLabel")}</label>
                             <select
                               value={job.type}
                               onChange={(e) => {
@@ -929,11 +979,11 @@ const EmployerDashboard = () => {
                               }}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             >
-                                <option value="">--Select Type--</option>
-                                <option value="Full Time">Full Time</option>
-                                <option value="Part Time">Part Time</option>
-                                <option value="Internship">Internship</option>
-                                <option value="Contract">Contract</option>
+                                <option value="">{t(formData.language, "selectType")}</option>
+                                <option value="Full Time">{t(formData.language, "fullTime")}</option>
+                                <option value="Part Time">{t(formData.language, "partTime")}</option>
+                                <option value="Internship">{t(formData.language, "internship")}</option>
+                                <option value="Contract">{t(formData.language, "contract")}</option>
                             </select>
                           </div>
                           {index > 0 && (
@@ -946,12 +996,12 @@ const EmployerDashboard = () => {
                           )}
                         </div>
                       ))}
-                      <button type="button" onClick={() => setFormData({ ...formData, jobProfile: [...formData.jobProfile, { title: "", type: "" }] })} className="text-xs text-primary font-bold hover:underline">+ Add Job Title</button>
+                      <button type="button" onClick={() => setFormData({ ...formData, jobProfile: [...formData.jobProfile, { title: "", type: "" }] })} className="text-xs text-primary font-bold hover:underline">{t(formData.language, "addJobTitle")}</button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Qualification</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "qualification")}</label>
                         <input
                           type="text"
                           name="qualification"
@@ -961,7 +1011,7 @@ const EmployerDashboard = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">No. of Position(s)</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "noOfPositions")}</label>
                         <input
                           type="number"
                           name="candidatesRequired"
@@ -974,14 +1024,14 @@ const EmployerDashboard = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Salary Range</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "salaryRange")}</label>
                         <div className="flex gap-2">
                             <input
                               type="number"
                               name="minSalary"
                               value={formData.minSalary}
                               onChange={handleInputChange}
-                              placeholder="Min Sal"
+                              placeholder={t(formData.language, "minSal")}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             />
                             <input
@@ -989,7 +1039,7 @@ const EmployerDashboard = () => {
                               name="maxSalary"
                               value={formData.maxSalary}
                               onChange={handleInputChange}
-                              placeholder="Max Sal"
+                              placeholder={t(formData.language, "maxSal")}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             />
                             <select
@@ -998,13 +1048,15 @@ const EmployerDashboard = () => {
                               onChange={handleInputChange}
                               className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
                             >
-                                <option value="Per Month">Per Month</option>
-                                <option value="Per Year">Per Year</option>
+                                <option value="Per Month">{t(formData.language, "perMonth")}</option>
+                                <option value="Per Year">{t(formData.language, "perYear")}</option>
                             </select>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Experience Required</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">
+                          {formData.postingType === 'Internship' || formData.postingType === 'Apprenticeship' ? t(formData.language, "duration") : t(formData.language, "experienceRequired")}
+                        </label>
                         <div className="flex gap-2">
                             <select
                               name="minExperience"
@@ -1012,7 +1064,7 @@ const EmployerDashboard = () => {
                               onChange={handleInputChange}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             >
-                                <option value="">-Min Exp-</option>
+                                <option value="">{formData.postingType === 'Internship' || formData.postingType === 'Apprenticeship' ? t(formData.language, "minDur") : t(formData.language, "minExp")}</option>
                                 {[...Array(15)].map((_, i) => <option key={i} value={i}>{i}</option>)}
                             </select>
                             <select
@@ -1021,7 +1073,7 @@ const EmployerDashboard = () => {
                               onChange={handleInputChange}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             >
-                                <option value="">-Max Exp-</option>
+                                <option value="">{formData.postingType === 'Internship' || formData.postingType === 'Apprenticeship' ? t(formData.language, "maxDur") : t(formData.language, "maxExp")}</option>
                                 {[...Array(20)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                             </select>
                             <select
@@ -1030,20 +1082,20 @@ const EmployerDashboard = () => {
                               onChange={handleInputChange}
                               className="w-[100px] bg-slate-50 border border-slate-200 rounded-lg py-2 px-2 outline-none text-xs focus:border-primary focus:bg-white shrink-0"
                             >
-                                <option value="Months">Months</option>
-                                <option value="Years">Years</option>
+                                <option value="Months">{t(formData.language, "months")}</option>
+                                <option value="Years">{t(formData.language, "years")}</option>
                             </select>
                         </div>
                       </div>
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-xs font-bold text-slate-600 mb-1">Job Description</label>
+                    <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "jobDescription")}</label>
                     <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="Job Description and Profile Description (Minimum 100 to Maximum 500 characters)"
+                      placeholder={t(formData.language, "jobDescPlaceholder")}
                       rows="3"
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white resize-none"
                     />
@@ -1053,7 +1105,7 @@ const EmployerDashboard = () => {
                     {formData.locations.map((loc, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-4 mb-4 items-end">
                         <div>
-                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location State</label>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "locationState")}</label>
                           <Select
                             options={INDIA_STATES}
                             value={INDIA_STATES.find(s => s.value === loc.state) || null}
@@ -1063,7 +1115,7 @@ const EmployerDashboard = () => {
                               newLocs[index].city = ""; 
                               setFormData({ ...formData, locations: newLocs });
                             }}
-                            placeholder="Search State..."
+                            placeholder={t(formData.language, "searchState")}
                             isClearable
                             isSearchable
                             styles={{
@@ -1082,7 +1134,7 @@ const EmployerDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-slate-600 mb-1">Job Location City</label>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "locationCity")}</label>
                           <Select
                             options={(() => {
                               if (!loc.state) return [];
@@ -1098,7 +1150,7 @@ const EmployerDashboard = () => {
                               newLocs[index].city = selected ? selected.value : "";
                               setFormData({ ...formData, locations: newLocs });
                             }}
-                            placeholder={loc.state ? "Search City..." : "Select State first"}
+                            placeholder={loc.state ? t(formData.language, "searchCity") : t(formData.language, "selectStateFirst")}
                             isDisabled={!loc.state}
                             isClearable
                             isSearchable
@@ -1118,10 +1170,10 @@ const EmployerDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-slate-600 mb-1">Pincode</label>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "pincode")}</label>
                           <input
                             type="text"
-                            placeholder="Pincode"
+                            placeholder={t(formData.language, "pincode")}
                             value={loc.pincode}
                             onChange={(e) => {
                               const newLocs = [...formData.locations];
@@ -1141,12 +1193,12 @@ const EmployerDashboard = () => {
                         ) : <div className="w-9 h-[34px]"></div>}
                       </div>
                     ))}
-                    <button type="button" onClick={() => setFormData({ ...formData, locations: [...formData.locations, { state: "", city: "", pincode: "" }] })} className="text-xs text-primary font-bold hover:underline">+ Add Location</button>
+                    <button type="button" onClick={() => setFormData({ ...formData, locations: [...formData.locations, { state: "", city: "", pincode: "" }] })} className="text-xs text-primary font-bold hover:underline">{t(formData.language, "addLocation")}</button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Expiry Date</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "jobExpiryDate")}</label>
                         <input
                           type="date"
                           name="jobExpiryDate"
@@ -1155,32 +1207,27 @@ const EmployerDashboard = () => {
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Hiring Process</label>
-                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
-                            {['FaceToFace', 'Writtentest', 'Telephonic', 'GroupDiscussion', 'Walk In'].map(method => (
-                                <label key={method} className="flex items-center gap-1.5 cursor-pointer">
-                                    <input 
-                                      type="checkbox" 
-                                      checked={formData.hiringProcess.includes(method)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setFormData({...formData, hiringProcess: [...formData.hiringProcess, method]});
-                                        } else {
-                                            setFormData({...formData, hiringProcess: formData.hiringProcess.filter(m => m !== method)});
-                                        }
-                                      }}
-                                    />
-                                    {method}
-                                </label>
-                            ))}
-                        </div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "otherBenefit")}</label>
+                        <select
+                          name="otherBenefit"
+                          value={formData.otherBenefit}
+                          onChange={handleInputChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
+                        >
+                            <option value="">{t(formData.language, "noneSelected")}</option>
+                            <option value="Health Insurance">{t(formData.language, "healthInsurance")}</option>
+                            <option value="Transport">{t(formData.language, "transport")}</option>
+                            <option value="Meals">{t(formData.language, "meals")}</option>
+                        </select>
                       </div>
+                      
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Position Open for</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "positionOpenFor")}</label>
                         <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
                             {['Male', 'Female', 'Transgender', 'Other'].map(gender => (
                                 <label key={gender} className="flex items-center gap-1.5 cursor-pointer">
@@ -1195,43 +1242,51 @@ const EmployerDashboard = () => {
                                         }
                                       }}
                                     />
-                                    {gender}
+                                    {t(formData.language, gender.toLowerCase()) || gender}
                                 </label>
                             ))}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Other Benefit</label>
-                        <select
-                          name="otherBenefit"
-                          value={formData.otherBenefit}
-                          onChange={handleInputChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
-                        >
-                            <option value="">None selected</option>
-                            <option value="Health Insurance">Health Insurance</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Meals">Meals</option>
-                        </select>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "hiringProcess")}</label>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-700">
+                            {['FaceToFace', 'Writtentest', 'Telephonic', 'GroupDiscussion', 'Walk In'].map(method => (
+                                <label key={method} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={formData.hiringProcess.includes(method)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setFormData({...formData, hiringProcess: [...formData.hiringProcess, method]});
+                                        } else {
+                                            setFormData({...formData, hiringProcess: formData.hiringProcess.filter(m => m !== method)});
+                                        }
+                                      }}
+                                    />
+                                    {t(formData.language, method.replace(/\s/g, '').replace(/^[A-Z]/, c => c.toLowerCase())) || method}
+                                </label>
+                            ))}
+                        </div>
                       </div>
+                      
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Open for Physically Challenged?</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "openForPhysicallyChallenged")}</label>
                         <select
                           name="openForPhysicallyChallenged"
                           value={formData.openForPhysicallyChallenged}
                           onChange={handleInputChange}
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                         >
-                            <option value="">--Select--</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
+                            <option value="">{t(formData.language, "select")}</option>
+                            <option value="Yes">{t(formData.language, "yes")}</option>
+                            <option value="No">{t(formData.language, "no")}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Organisation Name</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "organisationName")}</label>
                         <input
                           type="text"
                           name="organisationName"
@@ -1243,12 +1298,12 @@ const EmployerDashboard = () => {
                   </div>
               </div>
 
-              <div className="border-t border-slate-200 pt-4 mt-6">
-                  <h4 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider ">Your Details</h4>
+                  <div className="border-t border-slate-200 pt-4 mt-6">
+                  <h4 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider ">{t(formData.language, "yourDetails")}</h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Name</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "companyName")}</label>
                         <input
                           type="text"
                           name="companyName"
@@ -1258,22 +1313,22 @@ const EmployerDashboard = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Company Type</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "companyType")}</label>
                         <select
                           name="companyType"
                           value={formData.companyType}
                           onChange={handleInputChange}
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                         >
-                            <option value="">--Select--</option>
-                            <option value="Private">Private</option>
-                            <option value="Public">Public</option>
-                            <option value="Government">Government</option>
-                            <option value="NGO">NGO</option>
+                            <option value="">{t(formData.language, "select")}</option>
+                            <option value="Private">{t(formData.language, "privateType")}</option>
+                            <option value="Public">{t(formData.language, "publicType")}</option>
+                            <option value="Government">{t(formData.language, "government")}</option>
+                            <option value="NGO">{t(formData.language, "ngo")}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Contact Person Name</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "contactPersonName")}</label>
                         <input
                           type="text"
                           name="contactPersonName"
@@ -1286,7 +1341,7 @@ const EmployerDashboard = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Designation</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "designation")}</label>
                         <input
                           type="text"
                           name="designation"
@@ -1296,18 +1351,18 @@ const EmployerDashboard = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Mobile number</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "mobileNumber")}</label>
                         <input
                           type="text"
                           name="mobileNumber"
                           value={formData.mobileNumber}
                           onChange={handleInputChange}
-                          placeholder="Enter 10 Digit Phone No."
+                          placeholder={t(formData.language, "enterMobile")}
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "email")}</label>
                         <input
                           type="email"
                           name="email"
@@ -1320,7 +1375,7 @@ const EmployerDashboard = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Job Role</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{formData.postingType || "Job"} {t(formData.language, "jobRole")}</label>
                         <input
                           type="text"
                           name="yourDetailsJobRole"
@@ -1330,7 +1385,7 @@ const EmployerDashboard = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Total Number of Openings</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "totalNumberOpenings")}</label>
                         <input
                           type="number"
                           name="yourDetailsTotalOpenings"
@@ -1340,7 +1395,7 @@ const EmployerDashboard = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">State</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "state")}</label>
                         <Select
                           options={INDIA_STATES}
                           value={INDIA_STATES.find(s => s.value === formData.yourDetailsState) || null}
@@ -1351,7 +1406,7 @@ const EmployerDashboard = () => {
                               yourDetailsCity: "" 
                             });
                           }}
-                          placeholder="Search State..."
+                          placeholder={t(formData.language, "searchState")}
                           isClearable
                           isSearchable
                           styles={{
@@ -1373,7 +1428,7 @@ const EmployerDashboard = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">City</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">{t(formData.language, "cityText")}</label>
                         <Select
                           options={(() => {
                             if (!formData.yourDetailsState) return [];
@@ -1390,7 +1445,7 @@ const EmployerDashboard = () => {
                               yourDetailsCity: selected ? selected.value : ""
                             });
                           }}
-                          placeholder={formData.yourDetailsState ? "Search City..." : "Select State first"}
+                          placeholder={formData.yourDetailsState ? t(formData.language, "searchCity") : t(formData.language, "selectStateFirst")}
                           isDisabled={!formData.yourDetailsState}
                           isClearable
                           isSearchable
@@ -1417,7 +1472,7 @@ const EmployerDashboard = () => {
                               name="yourDetailsMinSalary"
                               value={formData.yourDetailsMinSalary}
                               onChange={handleInputChange}
-                              placeholder="Min Salary"
+                              placeholder={t(formData.language, "minSal")}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             />
                             <input
@@ -1425,7 +1480,7 @@ const EmployerDashboard = () => {
                               name="yourDetailsMaxSalary"
                               value={formData.yourDetailsMaxSalary}
                               onChange={handleInputChange}
-                              placeholder="Max Salary"
+                              placeholder={t(formData.language, "maxSal")}
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 outline-none text-xs focus:border-primary focus:bg-white"
                             />
                         </div>
@@ -1433,13 +1488,35 @@ const EmployerDashboard = () => {
                   </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-6">
+                  <div className="mb-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700  ">
+                      <input 
+                        type="checkbox" 
+                        name="showDetailsInUI"
+                        checked={formData.showDetailsInUI}
+                        onChange={(e) => setFormData({...formData, showDetailsInUI: e.target.checked})}
+                        className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary"
+                      />
+                      Want to show Job and Company details to Candidates?
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-1 ml-8">If unticked, candidates won't be able to open the details modal for this job posting.</p>
+                  </div>
+                 
+              </div>
+
               <div className="flex items-center justify-start gap-3 pt-4 border-t border-slate-200 mt-auto sticky bottom-0 bg-white pb-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/95 text-white text-sm font-bold shadow-md transition disabled:opacity-50"
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-extrabold shadow hover:bg-primary/90 transition flex items-center justify-center gap-2"
                 >
-                  {submitting ? "SUBMITTING..." : "SUBMIT"}
+                  {submitting ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <FiCheckCircle size={14} />
+                  )}
+                  {t(formData.language, "saveJobProfile")}
                 </button>
                 <button
                   type="button"

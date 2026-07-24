@@ -13,6 +13,8 @@ const EventResponsesView = ({ eventId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("form"); 
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +42,10 @@ const EventResponsesView = ({ eventId, onBack }) => {
 
 
   const bookingsArray = Array.isArray(bookings) ? bookings : (bookings.data || []);
+
+  const totalPages = Math.max(1, Math.ceil(bookingsArray.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedBookings = bookingsArray.slice(startIndex, startIndex + itemsPerPage);
 
   const formatExportData = () => {
     return bookingsArray.map(booking => {
@@ -389,7 +395,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
                 </td>
               </tr>
             ) : (
-              bookingsArray.map((booking, index) => {
+              paginatedBookings.map((booking, index) => {
                 const getAttendeeName = () => {
                   if (booking.answers) {
                     if (booking.answers.q_name) return booking.answers.q_name;
@@ -407,7 +413,7 @@ const EventResponsesView = ({ eventId, onBack }) => {
                 const attendeeName = getAttendeeName();
                 return (
                   <tr key={booking._id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-5 text-sm text-slate-500">{index + 1}</td>
+                    <td className="py-4 px-5 text-sm text-slate-500">{startIndex + index + 1}</td>
                     {activeTab === "tickets" && (
                       <td className="py-4 px-5 text-xs text-slate-500 font-mono" title={booking._id}>{booking._id}</td>
                     )}
@@ -521,6 +527,33 @@ const EventResponsesView = ({ eventId, onBack }) => {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between p-5 border-t border-[#E3EAFA]">
+          <p className="text-sm text-slate-500 font-medium">
+            Showing <span className="font-bold text-slate-900">{bookingsArray.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-bold text-slate-900">{Math.min(startIndex + itemsPerPage, bookingsArray.length)}</span> of <span className="font-bold text-slate-900">{bookingsArray.length}</span> responses
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Previous
+            </button>
+            <span className="text-sm font-semibold text-slate-900 mx-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <CandidateDetailsModal 
         isOpen={!!selectedBooking} 

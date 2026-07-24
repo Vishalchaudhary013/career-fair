@@ -149,6 +149,7 @@ const EmployerDashboardPage = () => {
     try {
       if (modalMode === "CREATE") {
         await joinAsPartner(selectedFairId, formData);
+        alert("Your job posting request has been sent to the admin. You will receive an email notification once it is approved.");
       } else {
         await updateEmployerJob(selectedFairId, selectedJobId, formData);
       }

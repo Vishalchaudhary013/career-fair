@@ -37,6 +37,7 @@ export const createEventServices = async (req) => {
     termAndConditions,
     startDate,
     endDate,
+    language,
   } = req.body;
 
   venue = parseFormData(venue);
@@ -85,6 +86,7 @@ export const createEventServices = async (req) => {
       termAndConditions,
       startDate,
       endDate,
+      language,
       fairBanner,
       fairLogo,
       companyListDocument,
@@ -149,6 +151,7 @@ export const updateEventServices = async (id, req) => {
     termAndConditions,
     startDate,
     endDate,
+    language,
   } = req.body;
 
   venue = parseFormData(venue) || undefined;
@@ -182,6 +185,7 @@ export const updateEventServices = async (id, req) => {
     ...(termAndConditions && { termAndConditions }),
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
+    ...(language && { language }),
   };
 
   const fairBanner = req.files?.fairBanner?.[0]?.filename;

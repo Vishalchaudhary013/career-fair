@@ -5,10 +5,14 @@ import { AiOutlineUser } from "react-icons/ai";
 import { Ticket, Calendar, User, LogOut, Menu, X, ChevronDown } from "lucide-react";
 import { FaRegUser } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
+import OtpModal from "./OtpModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("USER");
+  const [currentLang, setCurrentLang] = useState("en");
   const { user, logout } = useAuth(); 
 
   useEffect(() => {
@@ -18,7 +22,7 @@ const Navbar = () => {
           new window.google.translate.TranslateElement(
             {
               pageLanguage: "en",
-              includedLanguages: "en,hi,pa,fr,es,de,zh,ja",
+              includedLanguages: "en,hi,pa,ta,te,bn,mr,gu,kn,ml",
               layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
               autoDisplay: false,
             },
@@ -32,16 +36,25 @@ const Navbar = () => {
       script.async = true;
       document.body.appendChild(script);
     }
+    
+    // Read current language from cookie
+    const match = document.cookie.match(/googtrans=\/en\/([a-z]{2})/);
+    if (match && match[1]) {
+      setCurrentLang(match[1]);
+    } else {
+      setCurrentLang("en");
+    }
   }, []);
 
   const changeLanguage = (langCode) => {
+    setCurrentLang(langCode);
     const select = document.querySelector(".goog-te-combo");
     if (select) {
       select.value = langCode;
       if (langCode === "en" && select.value !== "en") {
         select.value = "en";
       }
-      select.dispatchEvent(new Fair("change"));
+      select.dispatchEvent(new Event("change"));
     } else {
       if (langCode === "en") {
         document.cookie =
@@ -65,8 +78,58 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm transition-all ">
-        <div className="w-full max-w-[1400px] mx-auto py-3 md:py-4 px-4">
+      <div className="fixed top-0 left-0 w-full z-50 transition-all ">
+       
+        <div className="bg-white border-b border-gray-200">
+          <div className="w-full max-w-[1400px] mx-auto py-1.5 px-4 flex justify-end items-center gap-4 sm:gap-6 text-[12px] sm:text-[13px] text-gray-700">
+            <div id="google_translate_element" style={{ display: "none" }}></div>
+            <div className="font-medium flex items-center gap-2">
+              <span className="text-gray-600">Language:</span>
+              <select 
+                value={currentLang}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="bg-transparent border border-gray-300 rounded px-2 py-0.5 outline-none focus:border-primary text-gray-800 font-medium cursor-pointer"
+              >
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="pa">Punjabi</option>
+                <option value="ta">Tamil</option>
+                <option value="te">Telugu</option>
+                <option value="bn">Bengali</option>
+                <option value="mr">Marathi</option>
+                <option value="gu">Gujarati</option>
+                <option value="kn">Kannada</option>
+                <option value="ml">Malayalam</option>
+              </select>
+            </div>
+            
+            {/* <div className="w-[1px] h-3.5 bg-gray-300 hidden sm:block"></div> */}
+            {/* <Link to="/signup?type=employer" className="hover:text-primary font-medium transition-colors">
+                  Post Job
+                </Link> */}
+            {!user && (
+              <div className="flex items-center gap-4 sm:gap-6">
+                <button 
+                  onClick={() => { setSelectedRole("EMPLOYER"); setShowOtpModal(true); }}
+                  className="hover:text-primary font-medium transition-colors"
+                >
+                  Register as Employer
+                </button>
+                <div className="w-[1px] h-3.5 bg-gray-300 hidden sm:block"></div>
+                <button 
+                  onClick={() => { setSelectedRole("USER"); setShowOtpModal(true); }}
+                  className="hover:text-primary font-medium transition-colors"
+                >
+                  Register as Jobseeker
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+       
+        <div className="bg-white border-b border-gray-200 shadow-sm w-full">
+        <div className="w-full max-w-[1400px] mx-auto py-1 md:py-1.5 px-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 md:gap-8 lg:flex-1">
               <button className="md:hidden text-gray-700" onClick={() => setShowMobileMenu(!showMobileMenu)}>
@@ -114,23 +177,6 @@ const Navbar = () => {
             </div>
 
             <div className="flex items-center justify-end gap-2 sm:gap-4 md:gap-6 lg:flex-1">
-              
-              <div id="google_translate_element" style={{ display: "none" }}></div>
-              <div className="text-[13px] font-medium flex items-center gap-2">
-                <button
-                  onClick={() => changeLanguage("en")}
-                  className="hover:text-red-600 transition-colors"
-                >
-                  EN
-                </button>
-                <span className="text-[12px]">|</span>
-                <button
-                  onClick={() => changeLanguage("hi")}
-                  className="hover:text-red-600 transition-colors"
-                >
-                  HIN
-                </button>
-              </div>
               
               <Link
                 to="/create-event"
@@ -259,6 +305,12 @@ const Navbar = () => {
           )}
         </div>
       </div>
+      </div>
+      <OtpModal 
+        isOpen={showOtpModal} 
+        onClose={() => setShowOtpModal(false)} 
+        defaultRole={selectedRole} 
+      />
     </>
   );
 };

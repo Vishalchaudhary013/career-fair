@@ -7,6 +7,7 @@ import AdminSidebar from "../admin-dashboard/AdminSidebar";
 import AdminHeader from "../admin-dashboard/AdminHeader";
 import OverviewSection from "../admin-dashboard/OverviewSection";
 import EventsSection from "../admin-dashboard/EventsSection";
+import AdminJobsSection from "../admin-dashboard/AdminJobsSection";
 import CreateEventHeader from "../create-event/CreateEventHeader";
 
 const AdminDashboard = () => {
@@ -96,6 +97,13 @@ const AdminDashboard = () => {
                   setEvents={setEvents} 
                   busy={busy} 
                   setBusy={setBusy} 
+                />
+              )}
+
+              {activeSection === "EmployerJobs" && (
+                <AdminJobsSection 
+                  events={events} 
+                  setEvents={setEvents} 
                 />
               )}
             </div>

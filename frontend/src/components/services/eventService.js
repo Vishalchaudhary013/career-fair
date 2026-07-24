@@ -15,6 +15,11 @@ export const deleteEvent = async (id) => {
   return response.data;
 };
 
+export const getAvailableLanguages = async () => {
+  const response = await api.get('/fair/config/languages');
+  return response.data.data;
+};
+
 export const getEmployerDashboard = async () => {
   const response = await api.get('/employer/my-dashboard');
   return response.data;

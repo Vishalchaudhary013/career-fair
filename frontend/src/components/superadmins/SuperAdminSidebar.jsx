@@ -85,6 +85,16 @@ function SuperAdminSidebar({ activeTab, setActiveTab, activeBar }) {
               >
                 Manage Job Fairs
               </button>
+
+              <button
+                className={`text-left font-medium px-4 py-2 rounded transition-colors ${activeTab === "employerJobs" ? "bg-blue-600 text-white" : "bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"}`}
+                onClick={() => {
+                  setActiveTab("employerJobs");
+                  handleClose();
+                }}
+              >
+                Employer Jobs
+              </button>
               
               <button
                 className="text-left font-medium px-4 py-2 mt-4 rounded bg-red-600 hover:bg-red-700 text-white transition-colors"
@@ -129,10 +139,17 @@ function SuperAdminSidebar({ activeTab, setActiveTab, activeBar }) {
           )}
           
           <button
-            className={`text-left font-medium px-4 py-2 rounded transition-colors ${activeTab === "manageJobFairs" ? "bg-blue-600 text-white" : "bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 "}`}
+            className={`text-left font-medium px-4 py-2 rounded transition-colors ${activeTab === "manageJobFairs" ? "bg-blue-600 text-white" : "bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"}`}
             onClick={() => setActiveTab("manageJobFairs")}
           >
             Manage Job Fairs
+          </button>
+
+          <button
+            className={`text-left font-medium px-4 py-2 rounded transition-colors ${activeTab === "employerJobs" ? "bg-blue-600 text-white" : "bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"}`}
+            onClick={() => setActiveTab("employerJobs")}
+          >
+            Employer Jobs
           </button>
           
           <button

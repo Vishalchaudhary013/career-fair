@@ -15,6 +15,8 @@ import moment from "moment";
 import SuperAdminSidebar from "./SuperAdminSidebar";
 import CreateJobFairForm from "../forms/CreateJobFairForm";
 import EditJobFairModal from "../modals/EditJobFairModal";
+import AdminJobsSection from "../admin-dashboard/AdminJobsSection";
+import { getAllEvents } from "../services/eventService";
 
 import { SERVER_URL } from "../../config";
 
@@ -23,6 +25,7 @@ const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [admins, setAdmins] = useState([]);
   const [jobFairs, setJobFairs] = useState([]);
+  const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [showJobFairModal, setShowJobFairModal] = useState(false);
@@ -68,9 +71,21 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  // ------------------ FETCH EVENTS ------------------
+  const fetchEvents = async () => {
+    try {
+      const data = await getAllEvents(true);
+      // Superadmin sees all events, so just set them
+      setEvents(data);
+    } catch (err) {
+      console.error("Error fetching events:", err);
+    }
+  };
+
   useEffect(() => {
     fetchAdmins();
     fetchJobFairs();
+    fetchEvents();
   }, []);
 
   // ------------------ ADD ADMIN ------------------
@@ -790,6 +805,11 @@ return (
       {activeTab === "adminDetails" && renderAdminDetails()}
       {activeTab === "manageAdmins" && renderManageAdmins()}
       {activeTab === "manageJobFairs" && renderManageJobFairs()}
+      {activeTab === "employerJobs" && (
+        <div className="w-full">
+          <AdminJobsSection events={events} setEvents={setEvents} />
+        </div>
+      )}
 
       {renderModal()}
       {renderEditModalData()}

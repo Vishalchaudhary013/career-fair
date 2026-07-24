@@ -9,7 +9,8 @@ import {
   changeUserPassword,
   updateSuperAdminProfile,
   getPendingAdmins,
-  approveAdmin
+  approveAdmin,
+  getAllBookings
 } from '../controllers/superAdminController.js';
 import { superAdminProtect } from '../middleware/adminMiddleware.js';
 
@@ -28,5 +29,6 @@ router.put("/profile", superAdminProtect, updateSuperAdminProfile);
 
 router.get("/pending-admins", superAdminProtect, getPendingAdmins);
 router.get("/approve-admin/:id", approveAdmin); 
+router.get("/bookings", superAdminProtect, getAllBookings); 
 
 export default router;
